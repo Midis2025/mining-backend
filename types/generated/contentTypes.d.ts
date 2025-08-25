@@ -596,6 +596,42 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiMagazineMagazine extends Struct.CollectionTypeSchema {
+  collectionName: 'magazines';
+  info: {
+    displayName: 'magazine';
+    pluralName: 'magazines';
+    singularName: 'magazine';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    buttonLink: Schema.Attribute.String;
+    buttonText: Schema.Attribute.String;
+    coverImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    Description: Schema.Attribute.RichText;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::magazine.magazine'
+    > &
+      Schema.Attribute.Private;
+    publishDate: Schema.Attribute.Date;
+    publishedAt: Schema.Attribute.DateTime;
+    Slug: Schema.Attribute.UID<'Title'>;
+    Title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiNewsCategoryNewsCategory
   extends Struct.CollectionTypeSchema {
   collectionName: 'news_categories';
@@ -1313,6 +1349,7 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::magazine.magazine': ApiMagazineMagazine;
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
       'api::news-section.news-section': ApiNewsSectionNewsSection;
       'api::project.project': ApiProjectProject;
