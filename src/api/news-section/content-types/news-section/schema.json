@@ -23,12 +23,9 @@
     "author": {
       "type": "string"
     },
-    "published_on": {
-      "type": "string"
-    },
-    "news_category": {
+    "news_categories": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "manyToMany",
       "target": "api::news-category.news-category",
       "inversedBy": "news_sections"
     },
@@ -41,6 +38,12 @@
         "videos",
         "audios"
       ]
+    },
+    "publish_on": {
+      "type": "date"
+    },
+    "sponsoredPost": {
+      "type": "boolean"
     }
   }
 }

@@ -16,9 +16,9 @@
     },
     "news_sections": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToMany",
       "target": "api::news-section.news-section",
-      "mappedBy": "news_category"
+      "mappedBy": "news_categories"
     },
     "slug": {
       "type": "uid",

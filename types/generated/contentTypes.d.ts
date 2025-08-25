@@ -619,7 +619,7 @@ export interface ApiNewsCategoryNewsCategory
     > &
       Schema.Attribute.Private;
     news_sections: Schema.Attribute.Relation<
-      'oneToMany',
+      'manyToMany',
       'api::news-section.news-section'
     >;
     publishedAt: Schema.Attribute.DateTime;
@@ -653,13 +653,14 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
       'api::news-section.news-section'
     > &
       Schema.Attribute.Private;
-    news_category: Schema.Attribute.Relation<
-      'manyToOne',
+    news_categories: Schema.Attribute.Relation<
+      'manyToMany',
       'api::news-category.news-category'
     >;
-    published_on: Schema.Attribute.String;
+    publish_on: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     short_description: Schema.Attribute.Text;
+    sponsoredPost: Schema.Attribute.Boolean;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
