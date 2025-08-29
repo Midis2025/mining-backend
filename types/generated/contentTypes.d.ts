@@ -622,6 +622,7 @@ export interface ApiMagazineMagazine extends Struct.CollectionTypeSchema {
       'api::magazine.magazine'
     > &
       Schema.Attribute.Private;
+    pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     publishDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     Slug: Schema.Attribute.UID<'Title'>;
