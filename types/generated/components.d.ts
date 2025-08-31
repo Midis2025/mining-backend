@@ -10,7 +10,7 @@ export interface SharedMedia extends Struct.ComponentSchema {
     file: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
   };
 }
-
+     
 export interface SharedQuote extends Struct.ComponentSchema {
   collectionName: 'components_shared_quotes';
   info: {
