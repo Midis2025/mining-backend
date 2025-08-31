@@ -444,7 +444,6 @@ export interface ApiAdvertisementAdvertisement
   attributes: {
     ads_image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     alt_text: Schema.Attribute.String;
-    company_url: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
