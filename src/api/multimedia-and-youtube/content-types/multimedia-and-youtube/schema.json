@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "multimedia_and_youtubes",
+  "info": {
+    "singularName": "multimedia-and-youtube",
+    "pluralName": "multimedia-and-youtubes",
+    "displayName": "Multimedia and youtube"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "iframe": {
+      "type": "text"
+    },
+    "title": {
+      "type": "text"
+    }
+  }
+}

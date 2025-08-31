@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pop_up_videos",
+  "info": {
+    "singularName": "pop-up-video",
+    "pluralName": "pop-up-videos",
+    "displayName": "Pop up video"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "youtube_link": {
+      "type": "text"
+    }
+  }
+}

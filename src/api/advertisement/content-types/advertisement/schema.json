@@ -23,6 +23,9 @@
     },
     "alt_text": {
       "type": "string"
+    },
+    "company_url": {
+      "type": "string"
     }
   }
 }
