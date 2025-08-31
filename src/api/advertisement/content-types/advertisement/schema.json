@@ -9,7 +9,7 @@
   "options": {
     "draftAndPublish": true
   },
-  "pluginOptions": {},
+  "pluginOptions": {},     
   "attributes": {
     "ads_image": {
       "type": "media",
