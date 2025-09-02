@@ -674,6 +674,7 @@ export interface ApiHomeAdvertismentHomeAdvertisment
     draftAndPublish: true;
   };
   attributes: {
+    ad_url: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -917,11 +918,13 @@ export interface ApiProjectProject extends Struct.CollectionTypeSchema {
       'api::project.project'
     > &
       Schema.Attribute.Private;
+    longDescription: Schema.Attribute.Text;
     project_image: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
     project_title: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    shortDescription: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -948,10 +951,12 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
       'api::report.report'
     > &
       Schema.Attribute.Private;
+    longDescription: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     reports_image: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
+    shortDescription: Schema.Attribute.String;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

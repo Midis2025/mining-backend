@@ -23,6 +23,12 @@
     },
     "title": {
       "type": "string"
+    },
+    "shortDescription": {
+      "type": "string"
+    },
+    "longDescription": {
+      "type": "text"
     }
   }
 }

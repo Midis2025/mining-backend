@@ -26,6 +26,9 @@
     },
     "url_text": {
       "type": "string"
+    },
+    "ad_url": {
+      "type": "string"
     }
   }
 }
