@@ -442,6 +442,7 @@ export interface ApiAdvertisementAdvertisement
     draftAndPublish: true;
   };
   attributes: {
+    ad_url: Schema.Attribute.String;
     ads_image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     alt_text: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
@@ -658,6 +659,40 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiHomeAdvertismentHomeAdvertisment
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'home_advertisments';
+  info: {
+    displayName: 'HomeAdvertisment';
+    pluralName: 'home-advertisments';
+    singularName: 'home-advertisment';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    home_image: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::home-advertisment.home-advertisment'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    url_text: Schema.Attribute.String;
   };
 }
 
@@ -1509,6 +1544,7 @@ declare module '@strapi/strapi' {
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;
       'api::global.global': ApiGlobalGlobal;
+      'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;
       'api::magazine.magazine': ApiMagazineMagazine;
       'api::multimedia-and-youtube.multimedia-and-youtube': ApiMultimediaAndYoutubeMultimediaAndYoutube;
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
