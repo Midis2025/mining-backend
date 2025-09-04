@@ -813,7 +813,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.Blocks;
+    description: Schema.Attribute.RichText;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -918,13 +918,13 @@ export interface ApiProjectProject extends Struct.CollectionTypeSchema {
       'api::project.project'
     > &
       Schema.Attribute.Private;
-    longDescription: Schema.Attribute.Text;
+    longDescription: Schema.Attribute.RichText;
     project_image: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
     project_title: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    shortDescription: Schema.Attribute.String;
+    shortDescription: Schema.Attribute.RichText;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -951,12 +951,12 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
       'api::report.report'
     > &
       Schema.Attribute.Private;
-    longDescription: Schema.Attribute.Text;
+    longDescription: Schema.Attribute.RichText;
     publishedAt: Schema.Attribute.DateTime;
     reports_image: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
-    shortDescription: Schema.Attribute.String;
+    shortDescription: Schema.Attribute.RichText;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

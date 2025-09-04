@@ -25,10 +25,10 @@
       "type": "string"
     },
     "shortDescription": {
-      "type": "string"
+      "type": "richtext"
     },
     "longDescription": {
-      "type": "text"
+      "type": "richtext"
     }
   }
 }

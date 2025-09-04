@@ -17,9 +17,6 @@
     "short_description": {
       "type": "text"
     },
-    "description": {
-      "type": "blocks"
-    },
     "author": {
       "type": "string"
     },
@@ -44,6 +41,9 @@
     },
     "sponsoredPost": {
       "type": "boolean"
+    },
+    "description": {
+      "type": "richtext"
     }
   }
 }
