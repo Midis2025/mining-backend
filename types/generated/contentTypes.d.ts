@@ -593,6 +593,45 @@ export interface ApiCeoProfileCeoProfile extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    shortDescription: Schema.Attribute.RichText;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCompanyProfileCompanyProfile
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'company_profiles';
+  info: {
+    displayName: 'Company-profile';
+    pluralName: 'company-profiles';
+    singularName: 'company-profile';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    companyPdf: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::company-profile.company-profile'
+    > &
+      Schema.Attribute.Private;
+    logoImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    shortDescription: Schema.Attribute.RichText;
+    title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1549,6 +1588,7 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
+      'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;
       'api::global.global': ApiGlobalGlobal;
       'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;

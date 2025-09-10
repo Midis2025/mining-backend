@@ -1,19 +1,22 @@
 {
   "kind": "collectionType",
-  "collectionName": "ceo_profiles",
+  "collectionName": "company_profiles",
   "info": {
-    "singularName": "ceo-profile",
-    "pluralName": "ceo-profiles",
-    "displayName": "ceo-profile"
+    "singularName": "company-profile",
+    "pluralName": "company-profiles",
+    "displayName": "Company-profile"
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "ceo_image": {
+    "title": {
+      "type": "string"
+    },
+    "logoImage": {
       "type": "media",
-      "multiple": false,
+      "multiple": true,
       "allowedTypes": [
         "images",
         "files",
@@ -21,13 +24,7 @@
         "audios"
       ]
     },
-    "name": {
-      "type": "string"
-    },
-    "designation": {
-      "type": "string"
-    },
-    "ceo_pdf": {
+    "companyPdf": {
       "type": "media",
       "multiple": true,
       "allowedTypes": [
