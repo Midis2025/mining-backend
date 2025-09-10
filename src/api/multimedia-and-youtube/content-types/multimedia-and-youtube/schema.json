@@ -16,6 +16,12 @@
     },
     "title": {
       "type": "text"
+    },
+    "multimedia_category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::multimedia-category.multimedia-category",
+      "inversedBy": "multimedia_and_youtubes"
     }
   }
 }

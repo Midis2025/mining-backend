@@ -795,8 +795,45 @@ export interface ApiMultimediaAndYoutubeMultimediaAndYoutube
       'api::multimedia-and-youtube.multimedia-and-youtube'
     > &
       Schema.Attribute.Private;
+    multimedia_category: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::multimedia-category.multimedia-category'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.Text;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiMultimediaCategoryMultimediaCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'multimedia_categories';
+  info: {
+    displayName: 'multimediaCategory';
+    pluralName: 'multimedia-categories';
+    singularName: 'multimedia-category';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::multimedia-category.multimedia-category'
+    > &
+      Schema.Attribute.Private;
+    multimedia_and_youtubes: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::multimedia-and-youtube.multimedia-and-youtube'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1594,6 +1631,7 @@ declare module '@strapi/strapi' {
       'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;
       'api::magazine.magazine': ApiMagazineMagazine;
       'api::multimedia-and-youtube.multimedia-and-youtube': ApiMultimediaAndYoutubeMultimediaAndYoutube;
+      'api::multimedia-category.multimedia-category': ApiMultimediaCategoryMultimediaCategory;
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
       'api::news-section.news-section': ApiNewsSectionNewsSection;
       'api::newsletter.newsletter': ApiNewsletterNewsletter;
