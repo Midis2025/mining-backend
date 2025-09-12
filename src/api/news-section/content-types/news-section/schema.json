@@ -44,6 +44,16 @@
     },
     "description": {
       "type": "richtext"
+    },
+    "pdf": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }
