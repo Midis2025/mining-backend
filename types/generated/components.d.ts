@@ -1,29 +1,29 @@
-import type { Schema, Struct } from '@strapi/strapi';
+import type { Attribute, Schema } from '@strapi/strapi';
 
-export interface SharedMedia extends Struct.ComponentSchema {
+export interface SharedMedia extends Schema.Component {
   collectionName: 'components_shared_media';
   info: {
     displayName: 'Media';
     icon: 'file-video';
   };
   attributes: {
-    file: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
+    file: Attribute.Media<'images' | 'files' | 'videos'>;
   };
 }
 
-export interface SharedQuote extends Struct.ComponentSchema {
+export interface SharedQuote extends Schema.Component {
   collectionName: 'components_shared_quotes';
   info: {
     displayName: 'Quote';
     icon: 'indent';
   };
   attributes: {
-    body: Schema.Attribute.Text;
-    title: Schema.Attribute.String;
+    body: Attribute.Text;
+    title: Attribute.String;
   };
 }
 
-export interface SharedRichText extends Struct.ComponentSchema {
+export interface SharedRichText extends Schema.Component {
   collectionName: 'components_shared_rich_texts';
   info: {
     description: '';
@@ -31,11 +31,11 @@ export interface SharedRichText extends Struct.ComponentSchema {
     icon: 'align-justify';
   };
   attributes: {
-    body: Schema.Attribute.RichText;
+    body: Attribute.RichText;
   };
 }
 
-export interface SharedSeo extends Struct.ComponentSchema {
+export interface SharedSeo extends Schema.Component {
   collectionName: 'components_shared_seos';
   info: {
     description: '';
@@ -44,13 +44,13 @@ export interface SharedSeo extends Struct.ComponentSchema {
     name: 'Seo';
   };
   attributes: {
-    metaDescription: Schema.Attribute.Text & Schema.Attribute.Required;
-    metaTitle: Schema.Attribute.String & Schema.Attribute.Required;
-    shareImage: Schema.Attribute.Media<'images'>;
+    metaDescription: Attribute.Text & Attribute.Required;
+    metaTitle: Attribute.String & Attribute.Required;
+    shareImage: Attribute.Media<'images'>;
   };
 }
 
-export interface SharedSlider extends Struct.ComponentSchema {
+export interface SharedSlider extends Schema.Component {
   collectionName: 'components_shared_sliders';
   info: {
     description: '';
@@ -58,13 +58,13 @@ export interface SharedSlider extends Struct.ComponentSchema {
     icon: 'address-book';
   };
   attributes: {
-    files: Schema.Attribute.Media<'images', true>;
+    files: Attribute.Media<'images', true>;
   };
 }
 
-declare module '@strapi/strapi' {
-  export module Public {
-    export interface ComponentSchemas {
+declare module '@strapi/types' {
+  export module Shared {
+    export interface Components {
       'shared.media': SharedMedia;
       'shared.quote': SharedQuote;
       'shared.rich-text': SharedRichText;
