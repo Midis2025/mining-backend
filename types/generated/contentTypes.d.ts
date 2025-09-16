@@ -893,7 +893,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
       Schema.Attribute.CustomField<
         'plugin::ckeditor5.CKEditor',
         {
-          preset: 'defaultMarkdown';
+          preset: 'defaultHtml';
         }
       >;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
@@ -1006,7 +1006,7 @@ export interface ApiProjectProject extends Struct.CollectionTypeSchema {
       Schema.Attribute.CustomField<
         'plugin::ckeditor5.CKEditor',
         {
-          preset: 'defaultMarkdown';
+          preset: 'defaultHtml';
         }
       >;
     project_image: Schema.Attribute.Media<
@@ -1046,7 +1046,7 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
       Schema.Attribute.CustomField<
         'plugin::ckeditor5.CKEditor',
         {
-          preset: 'defaultMarkdown';
+          preset: 'defaultHtml';
         }
       >;
     publishedAt: Schema.Attribute.DateTime;
