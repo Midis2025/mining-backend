@@ -37,7 +37,7 @@
       ]
     },
     "publish_on": {
-      "type": "datetime"
+      "type": "date"
     },
     "sponsoredPost": {
       "type": "boolean"

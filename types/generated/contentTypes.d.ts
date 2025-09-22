@@ -908,7 +908,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
       'api::news-category.news-category'
     >;
     pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
-    publish_on: Schema.Attribute.DateTime;
+    publish_on: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     short_description: Schema.Attribute.Text;
     sponsoredPost: Schema.Attribute.Boolean;
