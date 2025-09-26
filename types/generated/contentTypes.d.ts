@@ -373,34 +373,6 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiAboutUsAboutUs extends Struct.CollectionTypeSchema {
-  collectionName: 'about_uses';
-  info: {
-    displayName: 'about-us';
-    pluralName: 'about-uses';
-    singularName: 'about-us';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Blocks;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::about-us.about-us'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiAboutAbout extends Struct.SingleTypeSchema {
   collectionName: 'abouts';
   info: {
@@ -455,110 +427,6 @@ export interface ApiAdvertisementAdvertisement
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
-  collectionName: 'articles';
-  info: {
-    description: 'Create your blog content';
-    displayName: 'Article';
-    pluralName: 'articles';
-    singularName: 'article';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
-    blocks: Schema.Attribute.DynamicZone<
-      ['shared.media', 'shared.quote', 'shared.rich-text', 'shared.slider']
-    >;
-    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
-    cover: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 80;
-      }>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::article.article'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.UID<'title'>;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
-  collectionName: 'authors';
-  info: {
-    description: 'Create authors for your content';
-    displayName: 'Author';
-    pluralName: 'authors';
-    singularName: 'author';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    articles: Schema.Attribute.Relation<'oneToMany', 'api::article.article'>;
-    avatar: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    email: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::author.author'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
-  collectionName: 'categories';
-  info: {
-    description: 'Organize your content into categories';
-    displayName: 'Category';
-    pluralName: 'categories';
-    singularName: 'category';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    articles: Schema.Attribute.Relation<'oneToMany', 'api::article.article'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::category.category'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.UID;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -773,73 +641,6 @@ export interface ApiMagazineMagazine extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiMultimediaAndYoutubeMultimediaAndYoutube
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'multimedia_and_youtubes';
-  info: {
-    displayName: 'Multimedia and youtube';
-    pluralName: 'multimedia-and-youtubes';
-    singularName: 'multimedia-and-youtube';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    iframe: Schema.Attribute.Text;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::multimedia-and-youtube.multimedia-and-youtube'
-    > &
-      Schema.Attribute.Private;
-    multimedia_category: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::multimedia-category.multimedia-category'
-    >;
-    publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.Text;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiMultimediaCategoryMultimediaCategory
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'multimedia_categories';
-  info: {
-    displayName: 'multimediaCategory';
-    pluralName: 'multimedia-categories';
-    singularName: 'multimedia-category';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::multimedia-category.multimedia-category'
-    > &
-      Schema.Attribute.Private;
-    multimedia_and_youtubes: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::multimedia-and-youtube.multimedia-and-youtube'
-    >;
-    publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiNewsCategoryNewsCategory
   extends Struct.CollectionTypeSchema {
   collectionName: 'news_categories';
@@ -868,6 +669,40 @@ export interface ApiNewsCategoryNewsCategory
     >;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'category'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiNewsReviewNewsReview extends Struct.CollectionTypeSchema {
+  collectionName: 'news_reviews';
+  info: {
+    displayName: 'news_review';
+    pluralName: 'news-reviews';
+    singularName: 'news-review';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::news-review.news-review'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text;
+    name: Schema.Attribute.String;
+    news_sections: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::news-section.news-section'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -906,6 +741,10 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
     news_categories: Schema.Attribute.Relation<
       'manyToMany',
       'api::news-category.news-category'
+    >;
+    news_review: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::news-review.news-review'
     >;
     pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     publish_on: Schema.Attribute.Date;
@@ -1637,21 +1476,16 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
-      'api::about-us.about-us': ApiAboutUsAboutUs;
       'api::about.about': ApiAboutAbout;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
-      'api::article.article': ApiArticleArticle;
-      'api::author.author': ApiAuthorAuthor;
-      'api::category.category': ApiCategoryCategory;
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
       'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;
       'api::global.global': ApiGlobalGlobal;
       'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;
       'api::magazine.magazine': ApiMagazineMagazine;
-      'api::multimedia-and-youtube.multimedia-and-youtube': ApiMultimediaAndYoutubeMultimediaAndYoutube;
-      'api::multimedia-category.multimedia-category': ApiMultimediaCategoryMultimediaCategory;
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
+      'api::news-review.news-review': ApiNewsReviewNewsReview;
       'api::news-section.news-section': ApiNewsSectionNewsSection;
       'api::newsletter.newsletter': ApiNewsletterNewsletter;
       'api::pop-up-video.pop-up-video': ApiPopUpVideoPopUpVideo;

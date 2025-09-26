@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "news_reviews",
+  "info": {
+    "singularName": "news-review",
+    "pluralName": "news-reviews",
+    "displayName": "news_review"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "message": {
+      "type": "text"
+    },
+    "news_sections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::news-section.news-section",
+      "mappedBy": "news_review"
+    }
+  }
+}
