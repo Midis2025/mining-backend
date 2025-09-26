@@ -20,11 +20,8 @@
     "message": {
       "type": "text"
     },
-    "news_sections": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::news-section.news-section",
-      "mappedBy": "news_review"
+    "news_slug": {
+      "type": "string"
     }
   }
 }

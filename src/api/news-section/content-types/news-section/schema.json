@@ -58,12 +58,6 @@
       "options": {
         "preset": "defaultHtml"
       }
-    },
-    "news_review": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::news-review.news-review",
-      "inversedBy": "news_sections"
     }
   }
 }

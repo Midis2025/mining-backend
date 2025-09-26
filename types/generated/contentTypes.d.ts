@@ -698,10 +698,7 @@ export interface ApiNewsReviewNewsReview extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     message: Schema.Attribute.Text;
     name: Schema.Attribute.String;
-    news_sections: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::news-section.news-section'
-    >;
+    news_slug: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -741,10 +738,6 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
     news_categories: Schema.Attribute.Relation<
       'manyToMany',
       'api::news-category.news-category'
-    >;
-    news_review: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::news-review.news-review'
     >;
     pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     publish_on: Schema.Attribute.Date;
