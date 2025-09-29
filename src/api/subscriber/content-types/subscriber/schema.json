@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subscribers",
+  "info": {
+    "singularName": "subscriber",
+    "pluralName": "subscribers",
+    "displayName": "Subscriber"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "email": { "type": "email", "required": true, "unique": true },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" },
+    "status": {
+      "type": "enumeration",
+      "enum": ["subscribed","unsubscribed","pending","cleaned"],
+      "default": "subscribed"
+    },
+    "source": { "type": "string" }
+  }
+}
