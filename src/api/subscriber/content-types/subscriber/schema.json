@@ -7,17 +7,12 @@
     "displayName": "Subscriber"
   },
   "options": {
-    "draftAndPublish": false
+    "draftAndPublish": true
   },
+  "pluginOptions": {},
   "attributes": {
-    "email": { "type": "email", "required": true, "unique": true },
-    "firstName": { "type": "string" },
-    "lastName": { "type": "string" },
-    "status": {
-      "type": "enumeration",
-      "enum": ["subscribed","unsubscribed","pending","cleaned"],
-      "default": "subscribed"
-    },
-    "source": { "type": "string" }
+    "email": {
+      "type": "email"
+    }
   }
 }
