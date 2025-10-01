@@ -49,6 +49,11 @@
         "videos",
         "audios"
       ]
+    },
+    "features": {
+      "type": "component",
+      "component": "shared.features",
+      "repeatable": true
     }
   }
 }
