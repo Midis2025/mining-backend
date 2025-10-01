@@ -51,9 +51,7 @@
       ]
     },
     "features": {
-      "type": "component",
-      "component": "shared.features",
-      "repeatable": true
+      "type": "text"
     }
   }
 }
