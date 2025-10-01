@@ -433,6 +433,38 @@ export interface ApiAdvertisementAdvertisement
   };
 }
 
+export interface ApiBrandingRequestBrandingRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'branding_requests';
+  info: {
+    displayName: 'branding-request';
+    pluralName: 'branding-requests';
+    singularName: 'branding-request';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    company_name: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::branding-request.branding-request'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCeoProfileCeoProfile extends Struct.CollectionTypeSchema {
   collectionName: 'ceo_profiles';
   info: {
@@ -1560,6 +1592,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
+      'api::branding-request.branding-request': ApiBrandingRequestBrandingRequest;
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
       'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;

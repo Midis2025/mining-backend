@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "branding_requests",
+  "info": {
+    "singularName": "branding-request",
+    "pluralName": "branding-requests",
+    "displayName": "branding-request"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    }
+  }
+}
