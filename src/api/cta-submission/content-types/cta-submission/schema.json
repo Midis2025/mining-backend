@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cta_submissions",
+  "info": {
+    "singularName": "cta-submission",
+    "pluralName": "cta-submissions",
+    "displayName": "cta-submission"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "company_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    }
+  }
+}

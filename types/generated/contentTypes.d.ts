@@ -537,6 +537,36 @@ export interface ApiContactUsContactUs extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCtaSubmissionCtaSubmission
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'cta_submissions';
+  info: {
+    displayName: 'cta-submission';
+    pluralName: 'cta-submissions';
+    singularName: 'cta-submission';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    company_name: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::cta-submission.cta-submission'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -1533,6 +1563,7 @@ declare module '@strapi/strapi' {
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
       'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;
+      'api::cta-submission.cta-submission': ApiCtaSubmissionCtaSubmission;
       'api::global.global': ApiGlobalGlobal;
       'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;
       'api::investor.investor': ApiInvestorInvestor;
