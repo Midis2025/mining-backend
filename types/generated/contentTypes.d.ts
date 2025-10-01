@@ -697,6 +697,34 @@ export interface ApiInvestorInvestor extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiLeadLead extends Struct.CollectionTypeSchema {
+  collectionName: 'leads';
+  info: {
+    displayName: 'lead';
+    pluralName: 'leads';
+    singularName: 'lead';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    company_name: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::lead.lead'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMagazineMagazine extends Struct.CollectionTypeSchema {
   collectionName: 'magazines';
   info: {
@@ -1600,6 +1628,7 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::home-advertisment.home-advertisment': ApiHomeAdvertismentHomeAdvertisment;
       'api::investor.investor': ApiInvestorInvestor;
+      'api::lead.lead': ApiLeadLead;
       'api::magazine.magazine': ApiMagazineMagazine;
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
       'api::news-review.news-review': ApiNewsReviewNewsReview;
