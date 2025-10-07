@@ -1,5 +1,6 @@
 // config/plugins.js
-module.exports = () => ({
+module.exports = ({ env }) => ({
+  // ✅ CKEditor configuration
   ckeditor: {
     enabled: true,
     config: {
@@ -58,6 +59,23 @@ module.exports = () => ({
             '|',
             'resizeImage'
           ],
+        },
+      },
+    },
+  },
+
+  // ✅ Google Login configuration
+  'users-permissions': {
+    config: {
+      providers: {
+        google: {
+          enabled: true,
+          icon: 'google',
+          key: env('GOOGLE_CLIENT_ID'),
+          secret: env('GOOGLE_CLIENT_SECRET'),
+          callback: `${env('STRAPI_URL')}/api/connect/google/callback`,
+          redirectUri: `${env('STRAPI_URL')}/api/connect/google/callback`,
+          scope: ['email', 'profile'],
         },
       },
     },
