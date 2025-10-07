@@ -39,6 +39,16 @@
     },
     "shortDescription": {
       "type": "richtext"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }
