@@ -520,6 +520,10 @@ export interface ApiCompanyProfileCompanyProfile
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
+    cover_image: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -529,10 +533,6 @@ export interface ApiCompanyProfileCompanyProfile
       'api::company-profile.company-profile'
     > &
       Schema.Attribute.Private;
-    logoImage: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
     publishedAt: Schema.Attribute.DateTime;
     shortDescription: Schema.Attribute.RichText;
     title: Schema.Attribute.String;

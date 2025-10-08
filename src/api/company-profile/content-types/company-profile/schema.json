@@ -14,16 +14,6 @@
     "title": {
       "type": "string"
     },
-    "logoImage": {
-      "type": "media",
-      "multiple": true,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
     "companyPdf": {
       "type": "media",
       "multiple": true,
@@ -36,6 +26,16 @@
     },
     "shortDescription": {
       "type": "richtext"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }
