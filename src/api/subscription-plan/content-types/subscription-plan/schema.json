@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subscription_plans",
+  "info": {
+    "singularName": "subscription-plan",
+    "pluralName": "subscription-plans",
+    "displayName": "Subscription Plan"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "billingCycle": {
+      "type": "enumeration",
+      "enum": [
+        "free ",
+        "monthly",
+        "quarterly",
+        "yearly"
+      ]
+    },
+    "accessLevel": {
+      "type": "integer"
+    },
+    "stripePriceId": {
+      "type": "string"
+    },
+    "features": {
+      "type": "json"
+    }
+  }
+}

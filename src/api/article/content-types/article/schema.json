@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "articles",
+  "info": {
+    "singularName": "article",
+    "pluralName": "articles",
+    "displayName": "Article"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "fullContent": {
+      "type": "richtext"
+    },
+    "freeContent": {
+      "type": "richtext"
+    },
+    "minimumAccessLevel": {
+      "type": "integer"
+    }
+  }
+}

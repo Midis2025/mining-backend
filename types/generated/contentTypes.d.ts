@@ -433,6 +433,37 @@ export interface ApiAdvertisementAdvertisement
   };
 }
 
+export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
+  collectionName: 'articles';
+  info: {
+    displayName: 'Article';
+    pluralName: 'articles';
+    singularName: 'article';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    freeContent: Schema.Attribute.RichText;
+    fullContent: Schema.Attribute.RichText;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::article.article'
+    > &
+      Schema.Attribute.Private;
+    minimumAccessLevel: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiBrandingRequestBrandingRequest
   extends Struct.CollectionTypeSchema {
   collectionName: 'branding_requests';
@@ -1114,6 +1145,42 @@ export interface ApiSubscriberSubscriber extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSubscriptionPlanSubscriptionPlan
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'subscription_plans';
+  info: {
+    displayName: 'Subscription Plan';
+    pluralName: 'subscription-plans';
+    singularName: 'subscription-plan';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    accessLevel: Schema.Attribute.Integer;
+    billingCycle: Schema.Attribute.Enumeration<
+      ['free ', 'monthly', 'quarterly', 'yearly']
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    features: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::subscription-plan.subscription-plan'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    price: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    stripePriceId: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1569,7 +1636,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1594,12 +1660,22 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    planEndDate: Schema.Attribute.Date;
+    planStartDate: Schema.Attribute.Date;
+    planStatus: Schema.Attribute.Enumeration<
+      ['active', 'trial ', 'pending', 'canceled', 'expired']
+    >;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.role'
+    >;
+    stripeCustomerId: Schema.Attribute.String;
+    subscription_plan: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::subscription-plan.subscription-plan'
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1625,6 +1701,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
       'api::advertisement.advertisement': ApiAdvertisementAdvertisement;
+      'api::article.article': ApiArticleArticle;
       'api::branding-request.branding-request': ApiBrandingRequestBrandingRequest;
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
       'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
@@ -1645,6 +1722,7 @@ declare module '@strapi/strapi' {
       'api::services-category.services-category': ApiServicesCategoryServicesCategory;
       'api::services-section.services-section': ApiServicesSectionServicesSection;
       'api::subscriber.subscriber': ApiSubscriberSubscriber;
+      'api::subscription-plan.subscription-plan': ApiSubscriptionPlanSubscriptionPlan;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
