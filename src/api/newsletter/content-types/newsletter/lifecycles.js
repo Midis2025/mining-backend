@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 
 const MC_API_KEY = process.env.MAILCHIMP_API_KEY;
-const MC_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX; // e.g. "us21"
+const MC_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX; 
 const MC_AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
 
 // Log warning if misconfigured
