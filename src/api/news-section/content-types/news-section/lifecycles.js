@@ -2,35 +2,36 @@
 
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 
-// Environment variables
 const MC_API_KEY = process.env.MAILCHIMP_API_KEY;
-const MC_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX; // e.g., "us21"
+const MC_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX;
 const MC_AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
 const STRAPI_BASE_URL = process.env.STRAPI_BASE_URL || "https://admins.miningdiscovery.com";
-const MOCK_MAILCHIMP = process.env.MOCK_MAILCHIMP === "true"; // Optional test mode
+const MOCK_MAILCHIMP = process.env.MOCK_MAILCHIMP === "true";
+const MC_TEMPLATE_ID = 10574722; // <-- Your real Mailchimp template ID
 
-// Configure Mailchimp SDK
 mailchimp.setConfig({
   apiKey: MC_API_KEY,
   server: MC_SERVER_PREFIX,
 });
 
-/**
- * Send a "News Update" campaign to Mailchimp
- * If MOCK_MAILCHIMP is true or API is unreachable, logs a mock instead
- */
 async function sendNewsUpdateCampaign(news) {
-  const { title, short_description: summary, slug } = news; // adjust field name
-  const newsUrl = `${STRAPI_BASE_URL}/news/${slug}`;
+  const {
+    id,
+    title,
+    short_description,
+    description,
+    publish_on,
+    image_url,
+  } = news;
 
-  // Mock mode: skip real sending
+  const newsUrl = `${STRAPI_BASE_URL}/news/${id}`;
+
   if (MOCK_MAILCHIMP) {
-    strapi.log.info(`[Mailchimp MOCK] Campaign would have been sent for: ${title}`);
+    strapi.log.info(`[Mailchimp MOCK] Would send campaign for: ${title}`);
     return;
   }
 
   try {
-    // Test connectivity first
     await mailchimp.ping.get();
 
     // 1️⃣ Create a new campaign
@@ -41,54 +42,51 @@ async function sendNewsUpdateCampaign(news) {
         subject_line: `📰 ${title}`,
         title: `News Update – ${title}`,
         from_name: "Mining Discovery",
-        reply_to: "info@miningdiscovery.com",
+        reply_to: "midisresourcespvtltd@gmail.com",
+        template_id: MC_TEMPLATE_ID,
       },
     });
 
     if (!campaign || !campaign.id) {
-      strapi.log.warn(`[Mailchimp] ⚠ Campaign creation failed for: ${title}`);
+      strapi.log.warn(`[Mailchimp] ⚠ Failed to create campaign for: ${title}`);
       return;
     }
 
     const campaignId = campaign.id;
 
-    // 2️⃣ Set campaign content
+    // 2️⃣ Fill in template placeholders
     await mailchimp.campaigns.setContent(campaignId, {
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #222;">
-          <h2>${title}</h2>
-          <p>${summary || ""}</p>
-          <p><a href="${newsUrl}" target="_blank" style="color: #0073aa;">Read the full article →</a></p>
-          <hr/>
-          <p style="font-size: 12px; color: #666;">
-            You're receiving this because you subscribed to Mining Discovery updates.
-          </p>
-        </div>
-      `,
+      template: {
+        id: MC_TEMPLATE_ID,
+        sections: {
+          NEWS_TITLE: title,
+          NEWS_SHORT_DESC: short_description || "",
+          NEWS_DESCRIPTION: description || "",
+          NEWS_ID: id.toString(),
+          NEWS_IMAGE_URL: image_url || "https://miningdiscovery.com/default-news-image.png",
+          PUBLISH_DATE: publish_on || new Date().toISOString().split("T")[0],
+        },
+      },
     });
 
-    // 3️⃣ Send the campaign
+    // 3️⃣ Send campaign
     await mailchimp.campaigns.send(campaignId);
 
-    strapi.log.info(`[Mailchimp] 📤 Sent "News Update" campaign for: ${title}`);
+    strapi.log.info(`[Mailchimp] 📤 Sent 'News Update' campaign for: ${title}`);
   } catch (err) {
-    // Mailchimp unreachable or error
-    strapi.log.warn(`[Mailchimp MOCK] Unable to reach Mailchimp. Campaign would have been sent for: ${title}`);
-    strapi.log.warn(`[Mailchimp MOCK] Error: ${err.response?.body || err.message}`);
+    strapi.log.error(`[Mailchimp] ❌ Error sending campaign for ${news.title}: ${err.message}`);
+    strapi.log.error(err.response?.body || err);
   }
 }
 
 module.exports = {
-  /**
-   * Lifecycle: after creating a new news article
-   */
   async afterCreate(event) {
     const news = event.result;
 
     try {
       await sendNewsUpdateCampaign(news);
     } catch (err) {
-      strapi.log.error(`[Mailchimp] ❌ Error in lifecycle: ${err.message}`);
+      strapi.log.error(`[Mailchimp] ❌ Lifecycle error: ${err.message}`);
     }
   },
 };
