@@ -908,6 +908,41 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiNewsletterPostNewsletterPost
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'newsletter_posts';
+  info: {
+    displayName: 'newsletter-post';
+    pluralName: 'newsletter-posts';
+    singularName: 'newsletter-post';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    cover_image: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::newsletter-post.newsletter-post'
+    > &
+      Schema.Attribute.Private;
+    newsletter_pdf: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiNewsletterNewsletter extends Struct.CollectionTypeSchema {
   collectionName: 'newsletters';
   info: {
@@ -967,6 +1002,60 @@ export interface ApiPopUpVideoPopUpVideo extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     youtube_link: Schema.Attribute.Text;
+  };
+}
+
+export interface ApiPostNewsletterPostNewsletter
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'post_newsletters';
+  info: {
+    displayName: 'newsletter-month';
+    pluralName: 'post-newsletters';
+    singularName: 'post-newsletter';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    cover_image: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::post-newsletter.post-newsletter'
+    > &
+      Schema.Attribute.Private;
+    month: Schema.Attribute.Enumeration<
+      [
+        'January',
+        'Febuary',
+        'March ',
+        'April',
+        'May',
+        'June',
+        'July ',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ]
+    >;
+    newsletter_posts: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::newsletter-post.newsletter-post'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    year: Schema.Attribute.Integer;
   };
 }
 
@@ -1715,8 +1804,10 @@ declare module '@strapi/strapi' {
       'api::news-category.news-category': ApiNewsCategoryNewsCategory;
       'api::news-review.news-review': ApiNewsReviewNewsReview;
       'api::news-section.news-section': ApiNewsSectionNewsSection;
+      'api::newsletter-post.newsletter-post': ApiNewsletterPostNewsletterPost;
       'api::newsletter.newsletter': ApiNewsletterNewsletter;
       'api::pop-up-video.pop-up-video': ApiPopUpVideoPopUpVideo;
+      'api::post-newsletter.post-newsletter': ApiPostNewsletterPostNewsletter;
       'api::project.project': ApiProjectProject;
       'api::report.report': ApiReportReport;
       'api::services-category.services-category': ApiServicesCategoryServicesCategory;

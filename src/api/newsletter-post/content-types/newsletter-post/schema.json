@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "newsletter_posts",
+  "info": {
+    "singularName": "newsletter-post",
+    "pluralName": "newsletter-posts",
+    "displayName": "newsletter-post"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "newsletter_pdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}

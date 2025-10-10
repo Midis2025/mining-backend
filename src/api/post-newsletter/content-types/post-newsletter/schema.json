@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "post_newsletters",
+  "info": {
+    "singularName": "post-newsletter",
+    "pluralName": "post-newsletters",
+    "displayName": "newsletter-month"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "month": {
+      "type": "enumeration",
+      "enum": [
+        "January",
+        "Febuary",
+        "March ",
+        "April",
+        "May",
+        "June",
+        "July ",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
+    },
+    "year": {
+      "type": "integer"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "newsletter_posts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::newsletter-post.newsletter-post"
+    }
+  }
+}
