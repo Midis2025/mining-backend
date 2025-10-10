@@ -4,7 +4,7 @@
   "info": {
     "singularName": "post-newsletter",
     "pluralName": "post-newsletters",
-    "displayName": "newsletter-month"
+    "displayName": "post-newsletter"
   },
   "options": {
     "draftAndPublish": true
@@ -14,27 +14,12 @@
     "title": {
       "type": "string"
     },
-    "month": {
-      "type": "enumeration",
-      "enum": [
-        "January",
-        "Febuary",
-        "March ",
-        "April",
-        "May",
-        "June",
-        "July ",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ]
+    "newsletter_category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::newsletter-category.newsletter-category"
     },
-    "year": {
-      "type": "integer"
-    },
-    "cover_image": {
+    "coverImage": {
       "type": "media",
       "multiple": false,
       "allowedTypes": [
@@ -44,14 +29,18 @@
         "audios"
       ]
     },
-    "slug": {
-      "type": "uid",
-      "targetField": "title"
+    "pdfFile": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     },
-    "newsletter_posts": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::newsletter-post.newsletter-post"
+    "description": {
+      "type": "richtext"
     }
   }
 }
