@@ -9,7 +9,7 @@ const MC_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX; // e.g. "us21"
 const MC_AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID; // List ID
 const MC_FROM_NAME = process.env.MAILCHIMP_FROM_NAME || "MiningDiscovery";
 const MC_REPLY_TO = process.env.MAILCHIMP_REPLY_TO || "midisresourcespvtltd@gmail.com";
-const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || "http://127.0.0.1:5500";
+const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || "https://staging.miningdiscovery.com/";
 
 const MC_ENABLE_SEND = String(process.env.MAILCHIMP_ENABLE_SEND).toLowerCase() === "true";
 const MC_FORCE_RESEND = String(process.env.MAILCHIMP_FORCE_RESEND).toLowerCase() === "true";
