@@ -77,40 +77,212 @@ function buildEmailHtml(entry) {
   const documentId = getDocumentId(entry);
   const url = `${PUBLIC_SITE_URL}/news-sections/${documentId}`;
 
+  // Only escape for title, NOT for excerpt which contains HTML
   const safe = (s) => String(s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  
+  // Keep the excerpt as-is, allowing HTML content
+  const cleanExcerpt = excerpt || "";
 
   return `
-  <!doctype html>
+  <!DOCTYPE html>
   <html>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>${safe(title)}</title>
-    <style>
-      body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background: #f6f7f9; }
-      .wrap { max-width: 640px; margin: 0 auto; background: #ffffff; }
-      .header { padding: 20px 24px; font-size: 18px; font-weight: 700; border-bottom: 1px solid #eee; }
-      .hero img { display: block; width: 100%; height: auto; }
-      .content { padding: 24px; color: #222; line-height: 1.56; font-size: 16px; }
-      .title { font-size: 24px; margin: 0 0 12px 0; }
-      .cta { display: inline-block; margin-top: 16px; padding: 12px 18px; background: #111827; color: #fff; text-decoration: none; border-radius: 8px; }
-      .footer { padding: 16px 24px; color: #666; font-size: 12px; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="header">MiningDiscovery</div>
-      ${heroUrl ? `<div class="hero"><img src="${heroUrl}" alt=""></div>` : ""}
-      <div class="content">
-        <h1 class="title">${safe(title)}</h1>
-        ${excerpt ? `<p>${safe(excerpt)}</p>` : ""}
-        <a href="${url}" class="cta" target="_blank" rel="noopener">Read the full article</a>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>${safe(title)}</title>
+
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+          background: #f4f4f4;
+          padding: 0;
+          margin: 0;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background: #ffffff;
+        }
+        .view-browser {
+          background: #f9f9f9;
+          text-align: center;
+          padding: 12px;
+          font-size: 12px;
+        }
+        .view-browser a {
+          color: #333;
+          text-decoration: underline;
+        }
+        .header {
+          background: #ffffff;
+          padding: 30px 20px;
+          text-align: center;
+          border-bottom: 3px solid #ae8a4c;
+        }
+        .logo {
+          max-width: 280px;
+          height: auto;
+        }
+        .section-title {
+          background: #ae8a4c;
+          color: #ffffff;
+          padding: 16px 20px;
+          font-size: 18px;
+          font-weight: 700;
+          text-align: left;
+        }
+        .content {
+          padding: 30px 20px;
+          color: #333333;
+          line-height: 1.6;
+          font-size: 15px;
+          background: #ffffff;
+        }
+        .content p {
+          margin-bottom: 16px;
+          text-align: justify;
+        }
+        .content p:last-child {
+          margin-bottom: 0;
+        }
+        .cta-button {
+          text-align: center;
+          padding: 20px;
+          background: #ffffff;
+        }
+        .cta {
+          display: inline-block;
+          padding: 12px 40px;
+          background: #d4a574;
+          color: #333333;
+          text-decoration: none;
+          border-radius: 4px;
+          font-weight: 700;
+          font-size: 15px;
+          border: 2px solid #ae8a4c;
+        }
+        .hero-section {
+          padding: 20px;
+          background: #ffffff;
+        }
+        .hero-image {
+          width: 100%;
+          height: auto;
+          display: block;
+          border-radius: 4px;
+        }
+        .social-section {
+          background: #ae8a4c;
+          padding: 25px 20px;
+          text-align: center;
+        }
+        .social-icons {
+          display: inline-block;
+          text-align: center;
+        }
+        .social-icon {
+          display: inline-block;
+          width: 40px;
+          height: 40px;
+          margin: 0 10px;
+          background: #333333;
+          border-radius: 50%;
+          text-align: center;
+          vertical-align: middle;
+        }
+        .social-icon img {
+          width: 20px;
+          height: 20px;
+          margin-top: 10px;
+        }
+        .footer {
+          background: #ae8a4c;
+          padding: 20px;
+          color: #333333;
+          font-size: 11px;
+          text-align: center;
+        }
+        @media (max-width: 640px) {
+          .content {
+            padding: 20px 15px;
+            font-size: 14px;
+          }
+          .section-title {
+            font-size: 16px;
+            padding: 14px 15px;
+          }
+          .social-icon {
+            margin: 0 8px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- View in browser -->
+        <div class="view-browser">
+          <a href="${url}" target="_blank">View this email in your browser</a>
+        </div>
+
+        <!-- Header with Logo -->
+        <div class="header">
+          <img
+            src="https://staging.miningdiscovery.com/image/LOGO%20FOR%20Print.png"
+            alt="Mining Discovery"
+            class="logo"
+          />
+        </div>
+
+        <!-- Section Title -->
+        <div class="section-title">Get our Latest update</div>
+
+        <!-- Main Content -->
+        <div class="content">
+          <h2
+            style="
+              font-size: 22px;
+              margin-bottom: 20px;
+              color: #333;
+              font-weight: 700;
+            "
+          >
+            ${safe(title)}
+          </h2>
+          ${cleanExcerpt ? `<div>${cleanExcerpt}</div>` : ""}
+        </div>
+
+        <!-- CTA Button -->
+        <div class="cta-button">
+        
+        </div>
+
+        <!-- Hero Image/Video Section -->
+        ${heroUrl ? `
+        <div class="hero-section">
+          <img src="${heroUrl}" alt="Article image" class="hero-image" />
+        </div>
+        ` : ""}
+
+     
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin-bottom: 10px">
+            Copyright (C) *|CURRENT_YEAR|* *|LIST:COMPANY|* All rights reserved.
+          </p>
+          <p>
+            You're receiving this because you subscribed to MiningDiscovery
+            updates.
+          </p>
+        </div>
       </div>
-      <div class="footer">
-        You’re receiving this because you subscribed to MiningDiscovery updates.
-      </div>
-    </div>
-  </body>
+    </body>
   </html>
   `;
 }
