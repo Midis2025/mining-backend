@@ -42,9 +42,6 @@
     "sponsoredPost": {
       "type": "boolean"
     },
-    "description": {
-      "type": "richtext"
-    },
     "pdf": {
       "type": "media",
       "multiple": true,
@@ -54,6 +51,13 @@
         "videos",
         "audios"
       ]
+    },
+    "description": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
     }
   }
 }

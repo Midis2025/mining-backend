@@ -27,11 +27,15 @@
     "shortDescription": {
       "type": "richtext"
     },
-    "longDescription": {
-      "type": "richtext"
-    },
     "author": {
       "type": "string"
+    },
+    "longDescription": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
     }
   }
 }

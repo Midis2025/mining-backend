@@ -16,6 +16,8 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
+    "@_sh/strapi-plugin-ckeditor": "^6.0.3",
+    "@jeff-tian/strapi-plugin-ckeditor": "^1.5.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@strapi/strapi": "^4.25.23",
     "better-sqlite3": "11.3.0",
