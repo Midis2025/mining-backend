@@ -535,6 +535,41 @@ export interface ApiCeoProfileCeoProfile extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCommentComment extends Struct.CollectionTypeSchema {
+  collectionName: 'comments';
+  info: {
+    description: 'User comments on news articles';
+    displayName: 'Comment';
+    pluralName: 'comments';
+    singularName: 'comment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Text & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::comment.comment'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    news_section: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::news-section.news-section'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCompanyProfileCompanyProfile
   extends Struct.CollectionTypeSchema {
   collectionName: 'company_profiles';
@@ -875,6 +910,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
   };
   attributes: {
     author: Schema.Attribute.String;
+    comments: Schema.Attribute.Relation<'oneToMany', 'api::comment.comment'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1775,6 +1811,7 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::branding-request.branding-request': ApiBrandingRequestBrandingRequest;
       'api::ceo-profile.ceo-profile': ApiCeoProfileCeoProfile;
+      'api::comment.comment': ApiCommentComment;
       'api::company-profile.company-profile': ApiCompanyProfileCompanyProfile;
       'api::contact-us.contact-us': ApiContactUsContactUs;
       'api::cta-submission.cta-submission': ApiCtaSubmissionCtaSubmission;

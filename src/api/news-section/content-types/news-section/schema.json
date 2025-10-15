@@ -58,6 +58,12 @@
       "options": {
         "preset": "defaultHtml"
       }
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "news_section"
     }
   }
 }
