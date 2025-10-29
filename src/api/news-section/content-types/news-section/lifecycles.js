@@ -16,15 +16,11 @@ const rawSite = process.env.PUBLIC_SITE_URL || "https://www.miningdiscovery.com"
 const PUBLIC_SITE_URL = rawSite.replace(/\/+$/, "");
 
 // Send controls
-// Default to TRUE so “trigger 0” = immediate send on create/publish.
+// ⛔ Default FALSE: never auto-send. You'll trigger manually in Mailchimp.
 const MC_ENABLE_SEND =
-  String(process.env.MAILCHIMP_ENABLE_SEND ?? "true").toLowerCase() === "true";
+  String(process.env.MAILCHIMP_ENABLE_SEND ?? "false").toLowerCase() === "true";
 
-// If true, we also send on afterCreate even if not explicitly “published”
-const MC_SEND_ON_CREATE =
-  String(process.env.MAILCHIMP_SEND_ON_CREATE ?? "true").toLowerCase() === "true";
-
-// If a campaign was already sent, resend only if this is true
+// If a campaign was already sent, resend only if this is true (kept for safety if you ever turn sending on)
 const MC_FORCE_RESEND =
   String(process.env.MAILCHIMP_FORCE_RESEND ?? "false").toLowerCase() === "true";
 
@@ -63,25 +59,29 @@ function buildIdempotencyKey(entry) {
 }
 
 /**
- * trigger-0 decision:
- * - Send immediately on create if MC_SEND_ON_CREATE=true (default).
- * - Always send when an entry becomes published.
+ * Draft decision (no auto-send):
+ * - Create/update a campaign only when an entry is (newly) published.
+ * - We removed the "trigger 0" path that sent on creation.
  */
-function shouldSendNow(event) {
+function shouldCreateOrUpdateCampaign(event) {
   const { action, result, params } = event || {};
+  if (!result) return false;
+
+  // Detect an explicit publish action (publishedAt present in payload)
   const payloadIncludedPublishedAt = Object.prototype.hasOwnProperty.call(
     params?.data || {},
     "publishedAt"
   );
 
-  if (!result) return false;
+  // On create: only if it is created in a published state (explicit publish)
+  if (action === "afterCreate" && isPublished(result) && payloadIncludedPublishedAt) {
+    return true;
+  }
 
-  // Immediate send on creation (“trigger 0”)
-  if (action === "afterCreate" && MC_SEND_ON_CREATE) return true;
-
-  // Send when publish action happens (create or update that sets publishedAt)
-  if (action === "afterCreate" && isPublished(result)) return true;
-  if (action === "afterUpdate" && isPublished(result) && payloadIncludedPublishedAt) return true;
+  // On update: only if it (re)publishes or changes publishedAt
+  if (action === "afterUpdate" && isPublished(result) && payloadIncludedPublishedAt) {
+    return true;
+  }
 
   return false;
 }
@@ -100,7 +100,7 @@ function buildEmailHtml(entry) {
   const documentId = getDocumentId(entry);
   const url = `${PUBLIC_SITE_URL}/news-sections/${documentId}`;
 
-  // Only escape for title, NOT for excerpt which contains HTML
+  // Only escape for title, NOT for excerpt which may contain HTML
   const safe = (s) => String(s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const cleanExcerpt = excerpt || "";
 
@@ -207,7 +207,6 @@ async function createOrSendCampaign(entry) {
       status: "save",
     });
 
-    // Defensive: ensure we have an array
     const campaigns = Array.isArray(listResp?.campaigns) ? listResp.campaigns : [];
     if (campaigns.length > 0) {
       existing = campaigns.find(
@@ -278,8 +277,8 @@ async function createOrSendCampaign(entry) {
     }
   }
 
+  // 🚫 Do not auto-send. Keep as draft unless explicitly enabled via env.
   if (MC_ENABLE_SEND) {
-    // Prevent accidental double sends unless forced
     let retrieved = null;
     try {
       const campaignsList = await mailchimp.campaigns.list({ count: 100 });
@@ -296,7 +295,6 @@ async function createOrSendCampaign(entry) {
       return;
     }
 
-    // ───── trigger 0: immediate send ─────
     try {
       await mailchimp.campaigns.send(campaignId);
       strapi.log.info(
@@ -316,10 +314,10 @@ async function createOrSendCampaign(entry) {
 module.exports = {
   async afterCreate(event) {
     try {
-      if (shouldSendNow(event)) {
+      if (shouldCreateOrUpdateCampaign(event)) {
         await createOrSendCampaign(event.result);
       } else {
-        strapi.log.debug("[Mailchimp] News created but conditions not met; skipping.");
+        strapi.log.debug("[Mailchimp] News created but not a publish action; skipping campaign draft.");
       }
     } catch (err) {
       strapi.log.error(`[Mailchimp] afterCreate error: ${err?.message || err}`);
@@ -328,10 +326,10 @@ module.exports = {
 
   async afterUpdate(event) {
     try {
-      if (shouldSendNow(event)) {
+      if (shouldCreateOrUpdateCampaign(event)) {
         await createOrSendCampaign(event.result);
       } else {
-        strapi.log.debug("[Mailchimp] News updated without publish action; skipping.");
+        strapi.log.debug("[Mailchimp] News updated without publish action; skipping campaign draft.");
       }
     } catch (err) {
       strapi.log.error(`[Mailchimp] afterUpdate error: ${err?.message || err}`);
