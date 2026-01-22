@@ -6,9 +6,15 @@ const mailchimp = require('@mailchimp/mailchimp_marketing');
  * Initialize Mailchimp client
  */
 function initializeMailchimp() {
+  const apiKey = process.env.MAILCHIMP_API_KEY || '';
+  const server = process.env.MAILCHIMP_SERVER_PREFIX || process.env.MAILCHIMP_SERVER || '';
+
+  const maskedKey = apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}` : 'MISSING';
+  console.log('[MAILCHIMP] init - API key:', maskedKey, 'server:', server ? server : 'MISSING');
+
   mailchimp.setConfig({
-    apiKey: process.env.MAILCHIMP_API_KEY,
-    server: process.env.MAILCHIMP_SERVER_PREFIX,
+    apiKey,
+    server,
   });
   return mailchimp;
 }
@@ -138,8 +144,14 @@ async function sendCampaignToMailchimp(newsData) {
     };
 
     console.log('[MAILCHIMP] Creating campaign:', newsData.title);
-    const campaign = await client.campaigns.create(campaignContent);
-    console.log('[MAILCHIMP] ✓ Campaign created:', campaign.id);
+    let campaign;
+    try {
+      campaign = await client.campaigns.create(campaignContent);
+      console.log('[MAILCHIMP] ✓ Campaign created:', campaign.id);
+    } catch (err) {
+      console.error('[MAILCHIMP] ✗ Mailchimp SDK create error:', err.response?.body || err.message || err);
+      throw err;
+    }
 
     const htmlContent = generateNewsEmailTemplate(newsData);
     console.log('[MAILCHIMP] Setting HTML content...');
@@ -155,7 +167,7 @@ async function sendCampaignToMailchimp(newsData) {
       message: 'Campaign created as draft in Mailchimp',
     };
   } catch (error) {
-    console.error('[MAILCHIMP] ✗ Error:', error.message);
+    console.error('[MAILCHIMP] ✗ Error:', error.response?.body || error.message || error);
     throw error;
   }
 }
