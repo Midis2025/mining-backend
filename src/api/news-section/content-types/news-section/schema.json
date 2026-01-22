@@ -64,6 +64,14 @@
       "relation": "oneToMany",
       "target": "api::comment.comment",
       "mappedBy": "news_section"
+    },
+    "mailSent": {
+      "type": "boolean",
+      "default": false
+    },
+    "sendToMailchimp": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

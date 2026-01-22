@@ -928,6 +928,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
       'api::news-section.news-section'
     > &
       Schema.Attribute.Private;
+    mailSent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     news_categories: Schema.Attribute.Relation<
       'manyToMany',
       'api::news-category.news-category'
@@ -935,6 +936,8 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
     pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     publish_on: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
+    sendToMailchimp: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     short_description: Schema.Attribute.Text;
     sponsoredPost: Schema.Attribute.Boolean;
     title: Schema.Attribute.String;
