@@ -31,20 +31,28 @@ function generateNewsEmailTemplate(newsData) {
     slug,
   } = newsData;
   const baseUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
+  // Use STRAPI_URL for media if provided (images are served by the Strapi backend).
+  const mediaBase = process.env.STRAPI_URL || baseUrl;
 
   // Resolve image URL from Strapi image object or plain string.
   // Prefer formatted versions (medium -> large -> small -> thumbnail), fall back to top-level `url`.
-  function resolveImageUrl(img) {
+    function resolveImageUrl(img) {
     if (!img) return '';
-    if (typeof img === 'string') return img.startsWith('http') ? img : `${baseUrl}${img}`;
+    if (typeof img === 'string') return img.startsWith('http') ? img : `${mediaBase}${img}`;
     const formats = img.formats || {};
-    const prefer = ['medium', 'large', 'small', 'thumbnail'];
+    const prefer = ['large', 'medium', 'small', 'thumbnail'];
     for (const key of prefer) {
       if (formats[key] && formats[key].url) {
-        return formats[key].url.startsWith('http') ? formats[key].url : `${baseUrl}${formats[key].url}`;
+        const url = formats[key].url;
+        if (url.startsWith('//')) return `https:${url}`;
+        return url.startsWith('http') ? url : `${mediaBase}${url}`;
       }
     }
-    if (img.url) return img.url.startsWith('http') ? img.url : `${baseUrl}${img.url}`;
+    if (img.url) {
+      const url = img.url;
+      if (url.startsWith('//')) return `https:${url}`;
+      return url.startsWith('http') ? url : `${mediaBase}${url}`;
+    }
     return '';
   }
 
@@ -78,8 +86,9 @@ function generateNewsEmailTemplate(newsData) {
     .content-image { text-align:center; margin:20px 0; }
     .content-image img { width:100%; max-height:360px; object-fit:cover; border-radius:6px; }
     .description { font-size:15px; color:#475569; line-height:1.6; }
-    .read-btn { display:inline-block; margin-top:18px; background:#0070f3; color:#fff; padding:12px 22px; border-radius:6px; text-decoration:none; font-weight:600; }
-    .read-btn:hover { background:#005bd8; }
+    /* Read button removed per request */
+    .banner { padding:12px 24px; text-align:center; }
+    .banner img { width:100%; max-height:150px; object-fit:cover; border-radius:6px; display:block; }
     .footer { padding:18px 24px; font-size:13px; color:#6b7280; border-top:1px solid #eef2f6; text-align:center; }
     .footer a { color:#0070f3; text-decoration:none; }
     @media screen and (max-width:600px) { .container { margin:0 12px; } .topbar { padding:12px; } .hero { padding:16px; } }
@@ -99,9 +108,13 @@ function generateNewsEmailTemplate(newsData) {
 
       <div class="hero">
         <div class="title">${title || 'News Update'}</div>
-        ${imageUrl ? `<div class="content-image"><img src="${imageUrl}" alt="${title}" /></div>` : ''}
+        ${imageUrl ? `<div class="content-image"><img src="${imageUrl}" alt="${title}" style="width:100%;max-height:360px;object-fit:cover;border-radius:6px;display:block;" width="700"/></div>` : ''}
         <div class="description">${description || descriptionText || ''}</div>
-        <a class="read-btn" href="${articleUrl}">Read Full Story</a>
+        <div class="banner">
+          <a href="https://www.themininginvestmentevent.com/" target="_blank" rel="noopener noreferrer">
+            <img src="https://acceptable-desire-0cca5bb827.media.strapiapp.com/VID_Conference_64f8816fff.avif" alt="The Mining Investment Event" />
+          </a>
+        </div>
       </div>
 
       <div class="footer">

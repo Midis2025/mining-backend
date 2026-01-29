@@ -160,8 +160,32 @@ module.exports = {
     const description = news.description || news.fullContent || news.freeContent || '';
     const author = news.author || 'Mining Discovery';
     const publishDate = news.publish_on || news.publishedAt || news.createdAt;
-    const imageUrl = news.image?.url || news.image || '';
     const baseUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
+    // Use STRAPI_URL for media (images) if provided; otherwise fall back to frontend URL
+    const mediaBase = process.env.STRAPI_URL || baseUrl;
+
+    // Resolve image URL: accept string or Strapi image object and ensure absolute URLs for email clients.
+    function resolveImageUrl(img) {
+      if (!img) return '';
+      if (typeof img === 'string') return img.startsWith('http') ? img : `${mediaBase}${img}`;
+      const formats = img.formats || {};
+      const prefer = ['large', 'medium', 'small', 'thumbnail'];
+      for (const key of prefer) {
+        if (formats[key] && formats[key].url) {
+          const url = formats[key].url;
+          if (url.startsWith('//')) return `https:${url}`;
+          return url.startsWith('http') ? url : `${mediaBase}${url}`;
+        }
+      }
+      if (img.url) {
+        const url = img.url;
+        if (url.startsWith('//')) return `https:${url}`;
+        return url.startsWith('http') ? url : `${mediaBase}${url}`;
+      }
+      return '';
+    }
+
+    const imageUrl = resolveImageUrl(news.image);
     const newsUrl = news.type === 'news-section' 
       ? `${baseUrl}/news/${news.id}` 
       : `${baseUrl}/articles/${news.id}`;
@@ -203,7 +227,7 @@ module.exports = {
       ${author ? `<div class="author">By ${author}</div>` : ''}
       <div class="title">${title}</div>
       ${shortDescription ? `<div class="excerpt">${shortDescription}</div>` : ''}
-      ${imageUrl ? `<div class="image"><img src="${imageUrl}" alt="${title}" /></div>` : ''}
+      ${imageUrl ? `<div class="image"><img src="${imageUrl}" alt="${title}" style="width:100%;max-width:500px;height:auto;border-radius:4px;display:block;" width="500"/></div>` : ''}
       ${descriptionText ? `<div class="description">${descriptionText}</div>` : ''}
       <a href="${newsUrl}" class="cta">Read Full Story</a>
     </div>
