@@ -87,8 +87,11 @@ function generateNewsEmailTemplate(newsData) {
     .content-image img { width:100%; max-height:360px; object-fit:cover; border-radius:6px; }
     .description { font-size:15px; color:#475569; line-height:1.6; }
     /* Read button removed per request */
-    .banner { padding:12px 24px; text-align:center; }
+    .banner { padding:12px 24px; text-align:center; border-top:1px solid #eef2f6; margin-top:18px; padding-top:18px; }
     .banner img { width:100%; max-height:150px; object-fit:cover; border-radius:6px; display:block; }
+    .banner-desc { font-size:14px; color:#374151; margin-bottom:12px; text-align:left; line-height:1.5; }
+    .cta { display:inline-block; background:#0070f3; color:#ffffff; padding:10px 18px; border-radius:6px; text-decoration:none; font-weight:700; margin-top:12px; }
+    .cta:hover { opacity:0.95; }
     .footer { padding:18px 24px; font-size:13px; color:#6b7280; border-top:1px solid #eef2f6; text-align:center; }
     .footer a { color:#0070f3; text-decoration:none; }
     @media screen and (max-width:600px) { .container { margin:0 12px; } .topbar { padding:12px; } .hero { padding:16px; } }
@@ -111,9 +114,13 @@ function generateNewsEmailTemplate(newsData) {
         ${imageUrl ? `<div class="content-image"><img src="${imageUrl}" alt="${title}" style="width:100%;max-height:360px;object-fit:cover;border-radius:6px;display:block;" width="700"/></div>` : ''}
         <div class="description">${description || descriptionText || ''}</div>
         <div class="banner">
+          <div class="banner-desc">THE Mining Investment EVENT is Canada’s Only Tier I Global Mining Investment Conference, held annually in Québec City, Canada. THE Event hosts over 100 participating mining companies, is invitation only and is independently sponsored by the Government of Québec, and financial and mining communities at large. It is designed to specifically facilitate privately arranged meetings between mining companies, international investors, and various mining government authorities. THE Event is committed to promoting sustainability in the mining industry via education and innovation through its unique Student Sponsorship and SHE-Co Initiatives, highlighting ESG and equality issues, and providing a platform for some of the most influential thought leaders in the sector.</div>
           <a href="https://www.themininginvestmentevent.com/" target="_blank" rel="noopener noreferrer">
             <img src="https://acceptable-desire-0cca5bb827.media.strapiapp.com/VID_Conference_64f8816fff.avif" alt="The Mining Investment Event" />
           </a>
+          <div style="margin-top:12px;">
+            <a class="cta" href="https://www.themininginvestmentevent.com/register" target="_blank" rel="noopener noreferrer">Register Now</a>
+          </div>
         </div>
       </div>
 
