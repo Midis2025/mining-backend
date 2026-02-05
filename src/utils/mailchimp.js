@@ -74,9 +74,18 @@ function generateNewsEmailTemplate(newsData) {
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; background:#f4f6f8; color:#222; }
     .outer { width:100%; padding:20px 0; background:#f4f6f8; }
     .container { max-width:700px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
-    .topbar { background:#041e42; padding:18px 24px; display:flex; align-items:center; }
-    .logo { height:36px; }
-    .brand { color:#ffffff; font-weight:700; margin-left:12px; font-size:18px; }
+    .topbar { padding:18px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .logo { height:70px; display:block; border:0; max-width:50%; height:auto; }
+    .nav { display:flex; gap:28px; align-items:center; list-style:none; margin:0; padding:0; flex-wrap:nowrap; }
+    .nav a { color:#0f172a; text-decoration:none; font-size:14px; font-weight:600; white-space:nowrap; }
+    .nav svg { width:18px; height:18px; vertical-align:middle; margin-right:6px; fill:#0f172a; }
+    @media screen and (max-width:600px) {
+      .topbar { padding:12px; }
+      .logo { max-width:40%; }
+      .nav { gap:12px; }
+      /* allow shrinking but keep items on one line when possible */
+      .nav li { display:inline-block; }
+    }
     .meta { padding:18px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eef2f6; }
     .meta .left { font-size:13px; color:#6b7280; }
     .meta .right { font-size:13px; color:#6b7280; }
@@ -86,22 +95,41 @@ function generateNewsEmailTemplate(newsData) {
     .content-image { text-align:center; margin:20px 0; }
     .content-image img { width:100%; max-height:360px; object-fit:cover; border-radius:6px; }
     .description { font-size:15px; color:#475569; line-height:1.6; }
+    .divider-wrap { width:100%; max-width:700px; margin:18px auto; }
+    .divider-line { height:1px; background:#e6eef6; display:block; }
+    .divider-label { display:inline-block; padding:6px 14px; background:#ffffff; border:1px solid #e6eef6; border-radius:20px; color:#6b7280; font-size:12px; font-weight:700; margin:0 12px; }
+    .featured-rule { height:4px; background:#b8863a; border-radius:2px; margin:12px auto 8px; max-width:640px; }
+    .featured-label { text-align:center; color:#6b7280; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:12px; }
     /* Read button removed per request */
     .banner { padding:12px 24px; text-align:center; border-top:1px solid #eef2f6; margin-top:18px; padding-top:18px; }
     .banner img { width:100%; max-height:150px; object-fit:cover; border-radius:6px; display:block; }
     .banner-desc { font-size:14px; color:#374151; margin-bottom:12px; text-align:left; line-height:1.5; }
-    .cta { display:inline-block; background:#0070f3; color:#ffffff; padding:10px 18px; border-radius:6px; text-decoration:none; font-weight:700; margin-top:12px; }
-    .cta:hover { opacity:0.95; }
+    .cta { display:inline-block; background:#b8863a; color:#ffffff; padding:10px 18px; border-radius:6px; text-decoration:none; font-weight:700; margin-top:12px; border:0; box-shadow:0 6px 18px rgba(184,134,58,0.16); }
+    .cta:hover { opacity:0.95; background:#a46f2d; }
     .footer { padding:18px 24px; font-size:13px; color:#6b7280; border-top:1px solid #eef2f6; text-align:center; }
     .footer a { color:#0070f3; text-decoration:none; }
+    .social-list { text-align:center; padding:12px 0 6px 0; }
+    .social-link { display:inline-block; width:36px; height:36px; line-height:36px; border-radius:50%; background:#b8863a; color:#ffffff; text-decoration:none; font-weight:700; font-size:13px; margin:0 6px; text-align:center; }
+    .footer .social-link { color:#ffffff !important; }
+    .social-link span { display:inline-block; vertical-align:middle; line-height:36px; color:inherit; }
     @media screen and (max-width:600px) { .container { margin:0 12px; } .topbar { padding:12px; } .hero { padding:16px; } }
   </style>
 </head>
 <body>
   <div class="container">
       <div class="topbar">
-        <img class="logo" src="https://www.miningdiscovery.com/image/mining-discovery-logo-1.png" alt="Mining Discovery" />
-        <div class="brand">Mining Discovery</div>
+        <a href="https://www.miningdiscovery.com" target="_blank" style="text-decoration:none;">
+          <img class="logo" src="https://www.miningdiscovery.com/image/mining-discovery-logo-1.png" alt="Mining Discovery" width="180" height="56" style="display:block;border:0;outline:none;text-decoration:none;" />
+        </a>
+        <ul class="nav" role="navigation" aria-label="Main Navigation">
+          <li>
+            <a href="https://www.miningdiscovery.com/page/latest-news" target="_blank">
+              News
+            </a>
+          </li>
+          <li><a href="https://www.miningdiscovery.com/page/about-us" target="_blank">About Us</a></li>
+          <li><a href="https://www.miningdiscovery.com/page/contact-us" target="_blank">Contact Us</a></li>
+        </ul>
       </div>
 
       <div class="meta">
@@ -113,6 +141,28 @@ function generateNewsEmailTemplate(newsData) {
         <div class="title">${title || 'News Update'}</div>
         ${imageUrl ? `<div class="content-image"><img src="${imageUrl}" alt="${title}" style="width:100%;max-height:360px;object-fit:cover;border-radius:6px;display:block;" width="700"/></div>` : ''}
         <div class="description">${description || descriptionText || ''}</div>
+
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="divider-wrap" style="max-width:700px;margin:18px auto;">
+          <tr>
+            <td align="center" style="padding:0 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:640px;margin:0 auto;">
+                <tr>
+                  <td valign="middle" style="width:40%;padding:0;">
+                    <div class="divider-line" style="height:1px;background:#e6eef6;"></div>
+                  </td>
+                  <td valign="middle" align="center" style="padding:0 12px;white-space:nowrap;">
+                    <!-- label moved below the rule for visual hierarchy -->
+                  </td>
+                  <td valign="middle" style="width:40%;padding:0;">
+                    <div class="divider-line" style="height:1px;background:#e6eef6;"></div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <div class="featured-rule" style="height:4px;background:#b8863a;border-radius:2px;margin:12px auto 8px;max-width:640px;" aria-hidden="true"></div>
+        <div class="featured-label" style="text-align:center;color:#6b7280;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:12px;">FEATURED EVENT</div>
         <div class="banner">
           <div class="banner-desc">THE Mining Investment EVENT is Canada’s Only Tier I Global Mining Investment Conference, held annually in Québec City, Canada. THE Event hosts over 100 participating mining companies, is invitation only and is independently sponsored by the Government of Québec, and financial and mining communities at large. It is designed to specifically facilitate privately arranged meetings between mining companies, international investors, and various mining government authorities. THE Event is committed to promoting sustainability in the mining industry via education and innovation through its unique Student Sponsorship and SHE-Co Initiatives, highlighting ESG and equality issues, and providing a platform for some of the most influential thought leaders in the sector.</div>
           <a href="https://www.themininginvestmentevent.com/" target="_blank" rel="noopener noreferrer">
@@ -125,7 +175,14 @@ function generateNewsEmailTemplate(newsData) {
       </div>
 
       <div class="footer">
-        <div>&copy; ${new Date().getFullYear()} Mining Discovery. All rights reserved.</div>
+        <div class="social-list" aria-label="Social links">
+          <a class="social-link" href="https://www.linkedin.com/company/miningdiscovery/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><span>in</span></a>
+          <a class="social-link" href="https://www.instagram.com/miningdiscovery" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span>ig</span></a>
+          <a class="social-link" href="https://x.com/MiningDiscovery" target="_blank" rel="noopener noreferrer" aria-label="X"><span>X</span></a>
+          <a class="social-link" href="https://www.youtube.com/@miningdiscovery" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><span>YT</span></a>
+          <a class="social-link" href="https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Fconfirmemail.php%3Fnext%3Dhttps%253A%252F%252Fwww.facebook.com%252Fgetminingnews" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><span>f</span></a>
+        </div>
+        <div style="margin-top:6px;">&copy; ${new Date().getFullYear()} Mining Discovery. All rights reserved.</div>
         <div style="margin-top:8px;font-size:12px;color:#94a3b8;">You received this email because you subscribed to Mining Discovery news.</div>
         <div style="margin-top:8px;"><a href="*|UNSUB|*">Unsubscribe</a> | <a href="*|UPDATE_PROFILE|*">Update Preferences</a></div>
       </div>
