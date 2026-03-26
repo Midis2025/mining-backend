@@ -14,6 +14,13 @@ module.exports = {
 
   async afterUpdate(event) {
     const { result } = event;
+
+    // Check if updates should trigger email
+    if (process.env.MAILCHIMP_ENABLE_ON_UPDATE !== 'true') {
+      console.log('[MAILCHIMP] ⚠️ Mailchimp on-update disabled in .env');
+      return;
+    }
+
     await handleNewsPublication(result);
   },
 };
@@ -55,7 +62,7 @@ async function handleNewsPublication(newsSection) {
 
     console.log('[MAILCHIMP] ✅ All conditions met, proceeding to send...');
 
-    // Fetch full news data with relations
+    // Fetch full news data with relations (including full image object for proper URL resolution)
     const fullNews = await strapi.entityService.findOne(
       'api::news-section.news-section',
       newsSection.id,
@@ -69,13 +76,17 @@ async function handleNewsPublication(newsSection) {
     console.log('[MAILCHIMP] Image URL:', fullNews.image?.url || 'No image');
     console.log('[MAILCHIMP] Categories:', fullNews.news_categories?.length || 0);
 
-    // Prepare data for email
+    // Prepare data for email – pass the FULL image object so resolveImageUrl can pick the best format
     const emailData = {
+      id: fullNews.id,
+      documentId: fullNews.documentId,
       title: fullNews.title,
       short_description: fullNews.short_description,
       description: fullNews.description,
-      image: fullNews.image?.url || null,
+      image: fullNews.image || null,
       slug: fullNews.slug,
+      author: fullNews.author || 'Mining Discovery',
+      publish_on: fullNews.publish_on,
     };
 
     console.log('[MAILCHIMP] 📧 Sending campaign to Mailchimp...');

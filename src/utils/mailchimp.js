@@ -1,13 +1,37 @@
 'use strict';
 
 const mailchimp = require('@mailchimp/mailchimp_marketing');
+const dns = require('dns');
+
+// Fix for Node.js DNS resolution issues on some machines
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
+const axios = require('axios');
 
 /**
  * Initialize Mailchimp client
  */
-function initializeMailchimp() {
-  const apiKey = process.env.MAILCHIMP_API_KEY || '';
-  const server = process.env.MAILCHIMP_SERVER_PREFIX || process.env.MAILCHIMP_SERVER || '';
+async function initializeMailchimp() {
+  const apiKey = (process.env.MAILCHIMP_API_KEY || '').trim();
+  const server = (process.env.MAILCHIMP_SERVER_PREFIX || process.env.MAILCHIMP_SERVER || '').trim();
+
+  // Test connectivity first
+  const testUrl = `https://${server}.api.mailchimp.com/3.0/`;
+  console.log('[MAILCHIMP] Testing connectivity to:', testUrl);
+  try {
+    const res = await axios.get(testUrl, {
+      headers: { Authorization: `apikey ${apiKey}` },
+      timeout: 5000
+    });
+    console.log('[MAILCHIMP] ✓ Connectivity test successful:', res.status);
+  } catch (err) {
+    console.warn('[MAILCHIMP] ⚠️ Connectivity test warning:', err.message);
+    if (err.code === 'ENOTFOUND') {
+      console.error('[MAILCHIMP] ❌ CRITICAL: Domain resolution failed even with axios. This is a system-level DNS issue.');
+    }
+  }
 
   const maskedKey = apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}` : 'MISSING';
   console.log('[MAILCHIMP] init - API key:', maskedKey, 'server:', server ? server : 'MISSING');
@@ -20,9 +44,79 @@ function initializeMailchimp() {
 }
 
 /**
- * Generate HTML email template for news
+ * Resolve image URL from Strapi image object or plain string.
  */
-function generateNewsEmailTemplate(newsData) {
+function resolveImageUrl(img) {
+  const baseUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
+  const mediaBase = process.env.STRAPI_URL || baseUrl;
+
+  if (!img) return '';
+  if (typeof img === 'string') return img.startsWith('http') ? img : `${mediaBase}${img}`;
+  const formats = img.formats || {};
+  const prefer = ['large', 'medium', 'small', 'thumbnail'];
+  for (const key of prefer) {
+    if (formats[key] && formats[key].url) {
+      const url = formats[key].url;
+      if (url.startsWith('//')) return `https:${url}`;
+      return url.startsWith('http') ? url : `${mediaBase}${url}`;
+    }
+  }
+  if (img.url) {
+    const url = img.url;
+    if (url.startsWith('//')) return `https:${url}`;
+    return url.startsWith('http') ? url : `${mediaBase}${url}`;
+  }
+  return '';
+}
+
+/**
+ * Fetch latest published news from Strapi (excluding the current article)
+ */
+async function fetchLatestNews(excludeDocumentId, limit = 8) {
+  try {
+    console.log('[MAILCHIMP] Fetching latest news... excluding:', excludeDocumentId);
+    // In Strapi 5, it's recommended to use strapi.documents
+    const results = await strapi.documents('api::news-section.news-section').findMany({
+      status: 'published',
+      filters: {
+        ...(excludeDocumentId ? { documentId: { $ne: excludeDocumentId } } : {}),
+      },
+      sort: 'publish_on:desc',
+      limit,
+      fields: ['title', 'publish_on', 'author'],
+    });
+    console.log(`[MAILCHIMP] ✓ Found ${results?.length || 0} latest news items`);
+    return results || [];
+  } catch (err) {
+    console.error('[MAILCHIMP] ✗ Error fetching latest news:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Fetch published advertisements from Strapi
+ */
+async function fetchAdvertisements(limit = 4) {
+  try {
+    console.log('[MAILCHIMP] Fetching advertisements...');
+    const results = await strapi.documents('api::advertisement.advertisement').findMany({
+      status: 'published',
+      populate: ['ads_image'],
+      limit,
+    });
+    console.log(`[MAILCHIMP] ✓ Found ${results?.length || 0} advertisements`);
+    return results || [];
+  } catch (err) {
+    console.error('[MAILCHIMP] ✗ Error fetching advertisements:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Generate HTML email template for news – Mining Weekly style 3-column layout
+ * Left: Ad banners | Center: Main article | Right: Latest news
+ */
+function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = []) {
   const {
     title,
     short_description,
@@ -30,164 +124,402 @@ function generateNewsEmailTemplate(newsData) {
     image,
     slug,
   } = newsData;
+
+  const slugify = require('slugify');
+  const slugFn = typeof slugify === 'function' ? slugify : slugify.default;
+  const slugValue = slug || slugFn(title || 'news', { lower: true, strict: true });
   const baseUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
-  // Use STRAPI_URL for media if provided (images are served by the Strapi backend).
-  const mediaBase = process.env.STRAPI_URL || baseUrl;
-
-  // Resolve image URL from Strapi image object or plain string.
-  // Prefer formatted versions (medium -> large -> small -> thumbnail), fall back to top-level `url`.
-    function resolveImageUrl(img) {
-    if (!img) return '';
-    if (typeof img === 'string') return img.startsWith('http') ? img : `${mediaBase}${img}`;
-    const formats = img.formats || {};
-    const prefer = ['large', 'medium', 'small', 'thumbnail'];
-    for (const key of prefer) {
-      if (formats[key] && formats[key].url) {
-        const url = formats[key].url;
-        if (url.startsWith('//')) return `https:${url}`;
-        return url.startsWith('http') ? url : `${mediaBase}${url}`;
-      }
-    }
-    if (img.url) {
-      const url = img.url;
-      if (url.startsWith('//')) return `https:${url}`;
-      return url.startsWith('http') ? url : `${mediaBase}${url}`;
-    }
-    return '';
-  }
-
   const imageUrl = resolveImageUrl(image);
-  // Prefer an ID param when available (newsData.id), otherwise use slug-only path
+  
   const articleId = newsData.id || newsData._id || '';
   const articleUrl = articleId
-    ? `${baseUrl}/page/article/${slug}?id=${articleId}`
-    : `${baseUrl}/news/${slug}`;
-  const descriptionText = description?.replace(/<[^>]*>/g, '').substring(0, 300) || '';
+    ? `${baseUrl}/page/article/${slugValue}?id=${articleId}`
+    : `${baseUrl}/news/${slugValue}`;
+
+  // Format the publish date
+  const publishDate = newsData.publish_on
+    ? new Date(newsData.publish_on).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // Build advertisement banners HTML for the left column
+  let adBannersHtml = '';
+  if (advertisements.length > 0) {
+    advertisements.forEach((ad) => {
+      const adImgUrl = resolveImageUrl(ad.ads_image);
+      const adLink = ad.ad_url || '#';
+      const adAlt = ad.alt_text || 'Advertisement';
+      if (adImgUrl) {
+        adBannersHtml += `
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:12px;">
+            <tr>
+              <td align="center">
+                <a href="${adLink}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                  <img src="${adImgUrl}" alt="${adAlt}" width="160" style="display:block;width:160px;max-width:100%;height:auto;border-radius:6px;border:0;" />
+                </a>
+              </td>
+            </tr>
+          </table>`;
+      }
+    });
+  }
+
+  // If no ads, show a placeholder
+  if (!adBannersHtml) {
+    adBannersHtml = `
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:12px;">
+        <tr>
+          <td align="center" style="padding:20px 10px;background:#f8f9fa;border-radius:6px;">
+            <a href="${baseUrl}/page/services" target="_blank" style="text-decoration:none;color:#b8863a;font-size:12px;font-weight:600;">
+              Advertise Here
+            </a>
+          </td>
+        </tr>
+      </table>`;
+  }
+
+  // Build latest news HTML for the right column
+  let latestNewsHtml = '';
+  if (latestNews.length > 0) {
+    latestNews.forEach((news) => {
+      const newsUrl = news.id
+        ? `${baseUrl}/page/article/${news.slug}?id=${news.id}`
+        : `${baseUrl}/news/${news.slug}`;
+      const newsDate = news.publish_on
+        ? new Date(news.publish_on).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : '';
+      latestNewsHtml += `
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:0;">
+          <tr>
+            <td style="padding:10px 12px;border-bottom:1px solid #eef0f3;">
+              <a href="${newsUrl}" target="_blank" style="text-decoration:none;color:#1a1a2e;font-size:13px;font-weight:600;line-height:1.4;display:block;">
+                ${news.title}
+              </a>
+              <div style="font-size:11px;color:#8c8c8c;margin-top:4px;">
+                ${newsDate}${news.author ? ' By: ' + news.author : ' By: Mining Discovery'}
+              </div>
+            </td>
+          </tr>
+        </table>`;
+    });
+  } else {
+    latestNewsHtml = `
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td style="padding:16px 12px;color:#8c8c8c;font-size:13px;text-align:center;">
+            No recent news available
+          </td>
+        </tr>
+      </table>`;
+  }
 
   return `
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; background:#f4f6f8; color:#222; }
-    .outer { width:100%; padding:20px 0; background:#f4f6f8; }
-    .container { max-width:700px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
-    .topbar { padding:18px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    .logo { height:70px; display:block; border:0; max-width:50%; height:auto; }
-    .nav { display:flex; gap:28px; align-items:center; list-style:none; margin:0; padding:0; flex-wrap:nowrap; }
-    .nav a { color:#0f172a; text-decoration:none; font-size:14px; font-weight:600; white-space:nowrap; }
-    .nav svg { width:18px; height:18px; vertical-align:middle; margin-right:6px; fill:#0f172a; }
-    @media screen and (max-width:600px) {
-      .topbar { padding:12px; }
-      .logo { max-width:40%; }
-      .nav { gap:12px; }
-      /* allow shrinking but keep items on one line when possible */
-      .nav li { display:inline-block; }
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${title || 'Mining Discovery News'}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    table { border-collapse: collapse; }
+    .fallback-font { font-family: Arial, sans-serif; }
+  </style>
+  <![endif]-->
+  <style type="text/css">
+    /* Reset */
+    body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; background-color: #f0f2f5; }
+    
+    /* Typography */
+    .body-text { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    /* Mobile responsive */
+    @media only screen and (max-width: 680px) {
+      .email-wrapper { width: 100% !important; }
+      .main-table { width: 100% !important; }
+      .left-ads { display: none !important; width: 0 !important; max-height: 0 !important; overflow: hidden !important; mso-hide: all !important; }
+      .right-news { width: 100% !important; display: block !important; }
+      .center-content { width: 100% !important; display: block !important; }
+      .mobile-full { width: 100% !important; display: block !important; }
+      .mobile-hide { display: none !important; }
+      .mobile-padding { padding: 12px !important; }
+      .article-image { width: 100% !important; height: auto !important; }
     }
-    .meta { padding:18px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eef2f6; }
-    .meta .left { font-size:13px; color:#6b7280; }
-    .meta .right { font-size:13px; color:#6b7280; }
-    .hero { padding:24px; }
-    .title { font-size:22px; font-weight:700; color:#0f172a; margin:0 0 10px 0; }
-    .subtitle { font-size:15px; color:#374151; margin:0 0 16px 0; }
-    .content-image { text-align:center; margin:20px 0; }
-    .content-image img { width:100%; max-height:360px; object-fit:cover; border-radius:6px; }
-    .description { font-size:15px; color:#475569; line-height:1.6; }
-    .divider-wrap { width:100%; max-width:700px; margin:18px auto; }
-    .divider-line { height:1px; background:#e6eef6; display:block; }
-    .divider-label { display:inline-block; padding:6px 14px; background:#ffffff; border:1px solid #e6eef6; border-radius:20px; color:#6b7280; font-size:12px; font-weight:700; margin:0 12px; }
-    .featured-rule { height:4px; background:#b8863a; border-radius:2px; margin:12px auto 8px; max-width:640px; }
-    .featured-label { text-align:center; color:#6b7280; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:12px; }
-    /* Read button removed per request */
-    .banner { padding:12px 24px; text-align:center; border-top:1px solid #eef2f6; margin-top:18px; padding-top:18px; }
-    .banner img { width:100%; max-height:150px; object-fit:cover; border-radius:6px; display:block; }
-    .banner-desc { font-size:14px; color:#374151; margin-bottom:12px; text-align:left; line-height:1.5; }
-    .cta { display:inline-block; background:#b8863a; color:#ffffff; padding:10px 18px; border-radius:6px; text-decoration:none; font-weight:700; margin-top:12px; border:0; box-shadow:0 6px 18px rgba(184,134,58,0.16); }
-    .cta:hover { opacity:0.95; background:#a46f2d; }
-    .footer { padding:18px 24px; font-size:13px; color:#6b7280; border-top:1px solid #eef2f6; text-align:center; }
-    .footer a { color:#0070f3; text-decoration:none; }
-    .social-list { text-align:center; padding:12px 0 6px 0; }
-    .social-link { display:inline-block; width:36px; height:36px; line-height:36px; border-radius:50%; background:#b8863a; color:#ffffff; text-decoration:none; font-weight:700; font-size:13px; margin:0 6px; text-align:center; }
-    .footer .social-link { color:#ffffff !important; }
-    .social-link span { display:inline-block; vertical-align:middle; line-height:36px; color:inherit; }
-    @media screen and (max-width:600px) { .container { margin:0 12px; } .topbar { padding:12px; } .hero { padding:16px; } }
   </style>
 </head>
-<body>
-  <div class="container">
-      <div class="topbar">
-        <a href="https://www.miningdiscovery.com" target="_blank" style="text-decoration:none;">
-          <img class="logo" src="https://www.miningdiscovery.com/image/mining-discovery-logo-1.png" alt="Mining Discovery" width="180" height="56" style="display:block;border:0;outline:none;text-decoration:none;" />
-        </a>
-        <ul class="nav" role="navigation" aria-label="Main Navigation">
-          <li>
-            <a href="https://www.miningdiscovery.com/page/latest-news" target="_blank">
-              News
-            </a>
-          </li>
-          <li><a href="https://www.miningdiscovery.com/page/about-us" target="_blank">About Us</a></li>
-          <li><a href="https://www.miningdiscovery.com/page/contact-us" target="_blank">Contact Us</a></li>
-        </ul>
-      </div>
+<body style="margin:0;padding:0;background-color:#f0f2f5;" class="body-text">
+  <!-- Preheader text (hidden) -->
+  <div style="display:none;font-size:1px;color:#f0f2f5;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+    ${short_description || title || 'Latest mining news from Mining Discovery'}
+  </div>
 
-      <div class="meta">
-        <div class="left">${short_description || ''}</div>
-        <div class="right">${newsData.author || ''} ${newsData.publish_on ? ' | ' + new Date(newsData.publish_on).toLocaleDateString() : ''}</div>
-      </div>
+  <!-- Full-width wrapper -->
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f0f2f5;">
+    <tr>
+      <td align="center" style="padding:0;">
 
-      <div class="hero">
-        <div class="title">${title || 'News Update'}</div>
-        ${imageUrl ? `<div class="content-image"><img src="${imageUrl}" alt="${title}" style="width:100%;max-height:360px;object-fit:cover;border-radius:6px;display:block;" width="700"/></div>` : ''}
-        <div class="description">${description || descriptionText || ''}</div>
-
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="divider-wrap" style="max-width:700px;margin:18px auto;">
+        <!-- ====== HEADER WITH LOGO ====== -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="960" class="email-wrapper" style="max-width:960px;width:100%;">
           <tr>
-            <td align="center" style="padding:0 24px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:640px;margin:0 auto;">
+            <td style="padding:0;">
+              <!-- Top ticker bar -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#1a1a2e;">
                 <tr>
-                  <td valign="middle" style="width:40%;padding:0;">
-                    <div class="divider-line" style="height:1px;background:#e6eef6;"></div>
+                  <td style="padding:8px 20px;text-align:center;">
+                    <span style="color:#d4a843;font-size:11px;font-weight:600;letter-spacing:0.5px;">
+                      ★ MINING DISCOVERY — Your Premier Source for Mining News & Investment Insights ★
+                    </span>
                   </td>
-                  <td valign="middle" align="center" style="padding:0 12px;white-space:nowrap;">
-                    <!-- label moved below the rule for visual hierarchy -->
+                </tr>
+              </table>
+              <!-- Logo bar -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#ffffff;border-bottom:3px solid #d4a843;">
+                <tr>
+                  <td style="padding:16px 24px;" align="left" valign="middle">
+                    <a href="${baseUrl}" target="_blank" style="text-decoration:none;">
+                      <img src="https://www.miningdiscovery.com/image/mining-discovery-logo-1.png" alt="Mining Discovery" width="200" height="62" style="display:block;border:0;outline:none;max-width:200px;height:auto;" />
+                    </a>
                   </td>
-                  <td valign="middle" style="width:40%;padding:0;">
-                    <div class="divider-line" style="height:1px;background:#e6eef6;"></div>
+                  <td style="padding:16px 24px;" align="right" valign="middle">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:0 8px;">
+                          <a href="${baseUrl}" target="_blank" style="color:#1a1a2e;text-decoration:none;font-size:13px;font-weight:600;">Home</a>
+                        </td>
+                        <td style="padding:0 8px;">
+                          <a href="${baseUrl}/page/latest-news" target="_blank" style="color:#1a1a2e;text-decoration:none;font-size:13px;font-weight:600;">News</a>
+                        </td>
+                        <td style="padding:0 8px;">
+                          <a href="${baseUrl}/page/evening-chatter" target="_blank" style="color:#1a1a2e;text-decoration:none;font-size:13px;font-weight:600;">Evening Chatter</a>
+                        </td>
+                        <td style="padding:0 8px;">
+                          <a href="${baseUrl}/page/about-us" target="_blank" style="color:#1a1a2e;text-decoration:none;font-size:13px;font-weight:600;">About</a>
+                        </td>
+                        <td style="padding:0 8px;">
+                          <a href="${baseUrl}/page/contact-us" target="_blank" style="color:#1a1a2e;text-decoration:none;font-size:13px;font-weight:600;">Contact</a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
-        <div class="featured-rule" style="height:4px;background:#b8863a;border-radius:2px;margin:12px auto 8px;max-width:640px;" aria-hidden="true"></div>
-        <div class="featured-label" style="text-align:center;color:#6b7280;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:12px;">FEATURED EVENT</div>
-        <div class="banner">
-          <div class="banner-desc">THE Mining Investment EVENT is Canada’s Only Tier I Global Mining Investment Conference, held annually in Québec City, Canada. THE Event hosts over 100 participating mining companies, is invitation only and is independently sponsored by the Government of Québec, and financial and mining communities at large. It is designed to specifically facilitate privately arranged meetings between mining companies, international investors, and various mining government authorities. THE Event is committed to promoting sustainability in the mining industry via education and innovation through its unique Student Sponsorship and SHE-Co Initiatives, highlighting ESG and equality issues, and providing a platform for some of the most influential thought leaders in the sector.</div>
-          <a href="https://www.themininginvestmentevent.com/" target="_blank" rel="noopener noreferrer">
-            <img src="https://acceptable-desire-0cca5bb827.media.strapiapp.com/VID_Conference_64f8816fff.avif" alt="The Mining Investment Event" />
-          </a>
-          <div style="margin-top:12px;">
-            <a class="cta" href="https://www.themininginvestmentevent.com/register" target="_blank" rel="noopener noreferrer">Register Now</a>
-          </div>
-        </div>
-      </div>
 
-      <div class="footer">
-        <div class="social-list" aria-label="Social links">
-          <a class="social-link" href="https://www.linkedin.com/company/miningdiscovery/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><span>in</span></a>
-          <a class="social-link" href="https://www.instagram.com/miningdiscovery" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span>ig</span></a>
-          <a class="social-link" href="https://x.com/MiningDiscovery" target="_blank" rel="noopener noreferrer" aria-label="X"><span>X</span></a>
-          <a class="social-link" href="https://www.youtube.com/@miningdiscovery" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><span>YT</span></a>
-          <a class="social-link" href="https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Fconfirmemail.php%3Fnext%3Dhttps%253A%252F%252Fwww.facebook.com%252Fgetminingnews" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><span>f</span></a>
-        </div>
-        <div style="margin-top:6px;">&copy; ${new Date().getFullYear()} Mining Discovery. All rights reserved.</div>
-        <div style="margin-top:8px;font-size:12px;color:#94a3b8;">You received this email because you subscribed to Mining Discovery news.</div>
-        <div style="margin-top:8px;"><a href="*|UNSUB|*">Unsubscribe</a> | <a href="*|UPDATE_PROFILE|*">Update Preferences</a></div>
-      </div>
-    </div>
-  </div>
+        <!-- ====== DATE BAR ====== -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="960" class="email-wrapper" style="max-width:960px;width:100%;">
+          <tr>
+            <td style="background-color:#f8f9fb;padding:10px 24px;border-bottom:1px solid #e8ecf1;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="font-size:12px;color:#6b7280;font-weight:600;">
+                    ${publishDate}
+                  </td>
+                  <td align="right" style="font-size:12px;color:#6b7280;">
+                    <!-- Social icons -->
+                    <a href="https://www.linkedin.com/company/miningdiscovery/posts/?feedView=all" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">in</a>
+                    <a href="https://x.com/MiningDiscovery" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">X</a>
+                    <a href="https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Fconfirmemail.php%3Fnext%3Dhttps%253A%252F%252Fwww.facebook.com%252Fgetminingnews" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">f</a>
+                    <a href="https://www.instagram.com/miningdiscovery" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">ig</a>
+                    <a href="https://www.youtube.com/@miningdiscovery?themeRefresh=1" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">YT</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- ====== MAIN 3-COLUMN LAYOUT ====== -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="960" class="email-wrapper main-table" style="max-width:960px;width:100%;background-color:#ffffff;">
+          <tr>
+            <!-- ===== LEFT COLUMN – AD BANNERS ===== -->
+            <td class="left-ads" width="180" valign="top" style="width:180px;background-color:#f8f9fb;border-right:1px solid #eef0f3;padding:16px 10px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="padding-bottom:10px;">
+                    <div style="font-size:10px;color:#999;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;padding-bottom:8px;border-bottom:2px solid #d4a843;margin-bottom:12px;">
+                      Sponsors
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    ${adBannersHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+
+            <!-- ===== CENTER COLUMN – MAIN ARTICLE ===== -->
+            <td class="center-content mobile-full" valign="top" style="background-color:#ffffff;padding:0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <!-- Article hero image -->
+                ${imageUrl ? `
+                <tr>
+                  <td style="padding:20px 24px 0 24px;">
+                    <a href="${articleUrl}" target="_blank" style="text-decoration:none;">
+                      <img src="${imageUrl}" alt="${title}" class="article-image" width="100%" style="display:block;width:100%;max-height:380px;object-fit:cover;border-radius:6px;border:0;" />
+                    </a>
+                  </td>
+                </tr>` : ''}
+
+                <!-- Article title -->
+                <tr>
+                  <td style="padding:20px 24px 0 24px;">
+                    <h1 style="margin:0;padding:0;font-size:24px;font-weight:800;color:#1a1a2e;line-height:1.3;">
+                      <a href="${articleUrl}" target="_blank" style="text-decoration:none;color:#1a1a2e;">
+                        ${title || 'News Update'}
+                      </a>
+                    </h1>
+                  </td>
+                </tr>
+
+                <!-- Divider line -->
+                <tr>
+                  <td style="padding:14px 24px 0 24px;">
+                    <div style="height:2px;background:linear-gradient(90deg,#d4a843,#e8d5a8);border-radius:1px;" aria-hidden="true"></div>
+                  </td>
+                </tr>
+
+                <!-- Article description (FULL content) -->
+                <tr>
+                  <td style="padding:16px 24px 8px 24px;font-size:15px;color:#374151;line-height:1.75;">
+                    ${description || short_description || ''}
+                  </td>
+                </tr>
+
+                <!-- Article meta -->
+                <tr>
+                  <td style="padding:8px 24px 20px 24px;">
+                    <div style="font-size:13px;color:#8c8c8c;">
+                      ${publishDate} &nbsp;|&nbsp; Mining Discovery
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+
+            <!-- ===== RIGHT COLUMN – LATEST NEWS ===== -->
+            <td class="right-news mobile-full" width="250" valign="top" style="width:250px;background-color:#fafbfc;border-left:1px solid #eef0f3;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <!-- Latest News header -->
+                <tr>
+                  <td style="padding:18px 14px 10px 14px;">
+                    <div style="font-size:18px;font-weight:800;color:#1a1a2e;text-align:center;letter-spacing:0.3px;">
+                      Latest News
+                    </div>
+                    <div style="height:3px;background:#d4a843;border-radius:2px;margin-top:8px;" aria-hidden="true"></div>
+                  </td>
+                </tr>
+                <!-- News items -->
+                <tr>
+                  <td style="padding:0;">
+                    ${latestNewsHtml}
+                  </td>
+                </tr>
+                <!-- View all link -->
+                <tr>
+                  <td style="padding:14px 12px 18px 12px;text-align:center;">
+                    <a href="${baseUrl}/page/latest-news" target="_blank" style="display:inline-block;background:#d4a843;color:#ffffff;padding:10px 22px;border-radius:20px;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:0.5px;">
+                      VIEW ALL NEWS →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- ====== FEATURED EVENT BANNER ====== -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="960" class="email-wrapper" style="max-width:960px;width:100%;background-color:#ffffff;border-top:3px solid #d4a843;">
+          <tr>
+            <td style="padding:20px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-bottom:12px;">
+                    <div style="font-size:11px;color:#8c8c8c;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
+                      FEATURED EVENT
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f8f9fb;border-radius:8px;overflow:hidden;">
+                      <tr>
+                        <td width="40%" style="padding:0;" valign="top">
+                          <a href="https://www.themininginvestmentevent.com/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                            <img src="https://acceptable-desire-0cca5bb827.media.strapiapp.com/large_THE_Mining_Investment_Event_2026_1_converted_b65a966501.webp" alt="The Mining Investment Event" width="100%" style="display:block;width:100%;height:auto;border:0;border-radius:8px 0 0 8px;" />
+                          </a>
+                        </td>
+                        <td width="60%" style="padding:18px 20px;" valign="middle">
+                          <div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">The Mining Investment Event</div>
+                          <div style="font-size:13px;color:#555;line-height:1.5;margin-bottom:14px;">
+                            Canada's Only Tier I Global Mining Investment Conference. Over 100 participating mining companies, bringing together investors and authorities.
+                          </div>
+                          <a href="https://www.themininginvestmentevent.com/register" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#d4a843;color:#ffffff;padding:10px 20px;border-radius:20px;text-decoration:none;font-weight:700;font-size:12px;">
+                            Register Now →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- ====== FOOTER ====== -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="960" class="email-wrapper" style="max-width:960px;width:100%;background-color:#1a1a2e;">
+          <tr>
+            <td style="padding:28px 24px;text-align:center;">
+              <!-- Logo in footer -->
+              <a href="${baseUrl}" target="_blank" style="text-decoration:none;">
+                <img src="https://www.miningdiscovery.com/image/mining-discovery-logo-1.png" alt="Mining Discovery" width="160" style="display:inline-block;border:0;outline:none;max-width:160px;height:auto;margin-bottom:16px;" />
+              </a>
+              <!-- Social links -->
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 14px auto;">
+                <tr>
+                  <td style="padding:0 5px;">
+                    <a href="https://www.linkedin.com/company/miningdiscovery/posts/?feedView=all" target="_blank" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">in</a>
+                  </td>
+                  <td style="padding:0 5px;">
+                    <a href="https://x.com/MiningDiscovery" target="_blank" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">X</a>
+                  </td>
+                  <td style="padding:0 5px;">
+                    <a href="https://www.instagram.com/miningdiscovery" target="_blank" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">ig</a>
+                  </td>
+                  <td style="padding:0 5px;">
+                    <a href="https://www.youtube.com/@miningdiscovery?themeRefresh=1" target="_blank" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">YT</a>
+                  </td>
+                  <td style="padding:0 5px;">
+                    <a href="https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Fconfirmemail.php%3Fnext%3Dhttps%253A%252F%252Fwww.facebook.com%252Fgetminingnews" target="_blank" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">f</a>
+                  </td>
+                </tr>
+              </table>
+              <!-- Copyright -->
+              <div style="font-size:12px;color:#8c9ab0;margin-bottom:6px;">
+                &copy; ${new Date().getFullYear()} Mining Discovery. All rights reserved.
+              </div>
+              <div style="font-size:11px;color:#6b7b94;margin-bottom:10px;">
+                You received this email because you subscribed to Mining Discovery news.
+              </div>
+              <div style="font-size:12px;">
+                <a href="*|UNSUB|*" style="color:#d4a843;text-decoration:underline;">Unsubscribe</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="*|UPDATE_PROFILE|*" style="color:#d4a843;text-decoration:underline;">Update Preferences</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
@@ -205,7 +537,15 @@ async function sendCampaignToMailchimp(newsData) {
     }
 
     console.log('[MAILCHIMP] Initializing Mailchimp client...');
-    const client = initializeMailchimp();
+    const client = await initializeMailchimp();
+
+    // Fetch dynamic content for the email template
+    console.log('[MAILCHIMP] Fetching latest news and advertisements...');
+    const [latestNews, advertisements] = await Promise.all([
+      fetchLatestNews(newsData.documentId || null, 8),
+      fetchAdvertisements(4),
+    ]);
+    console.log(`[MAILCHIMP] ✓ Fetched ${latestNews.length} latest news, ${advertisements.length} ads`);
 
     const campaignContent = {
       type: 'regular',
@@ -230,7 +570,7 @@ async function sendCampaignToMailchimp(newsData) {
       throw err;
     }
 
-    const htmlContent = generateNewsEmailTemplate(newsData);
+    const htmlContent = generateNewsEmailTemplate(newsData, latestNews, advertisements);
     console.log('[MAILCHIMP] Setting HTML content...');
     await client.campaigns.setContent(campaign.id, { html: htmlContent });
     console.log('[MAILCHIMP] ✓ HTML content set');
@@ -253,4 +593,6 @@ module.exports = {
   initializeMailchimp,
   generateNewsEmailTemplate,
   sendCampaignToMailchimp,
+  fetchLatestNews,
+  fetchAdvertisements,
 };

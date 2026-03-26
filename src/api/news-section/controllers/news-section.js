@@ -18,7 +18,7 @@ module.exports = createCoreController('api::news-section.news-section', {
 
       console.log('[MAILCHIMP] Manual send request for news ID:', id);
 
-      // Fetch news section
+      // Fetch news section with full image object
       const newsSection = await strapi.entityService.findOne(
         'api::news-section.news-section',
         id,
@@ -47,13 +47,16 @@ module.exports = createCoreController('api::news-section.news-section', {
 
       console.log('[MAILCHIMP] ✓ Validation passed, preparing email...');
 
-      // Prepare email data
+      // Prepare email data – pass the FULL image object and ID for correct link/image resolution
       const emailData = {
+        id: newsSection.id,
         title: newsSection.title,
         short_description: newsSection.short_description,
         description: newsSection.description,
-        image: newsSection.image?.url || null,
+        image: newsSection.image || null,
         slug: newsSection.slug,
+        author: newsSection.author || 'Mining Discovery',
+        publish_on: newsSection.publish_on,
       };
 
       // Send to Mailchimp
