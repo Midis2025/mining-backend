@@ -10,6 +10,16 @@ if (dns.setDefaultResultOrder) {
 
 const axios = require('axios');
 
+// Fallback to Google DNS if local resolution fails
+if (dns.setServers) {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+    console.log('[MAILCHIMP] DNS: Google/Cloudflare servers configured for fallback');
+  } catch (e) {
+    console.warn('[MAILCHIMP] DNS: Failed to set custom servers:', e.message);
+  }
+}
+
 /**
  * Initialize Mailchimp client
  */
@@ -17,20 +27,30 @@ async function initializeMailchimp() {
   const apiKey = (process.env.MAILCHIMP_API_KEY || '').trim();
   const server = (process.env.MAILCHIMP_SERVER_PREFIX || process.env.MAILCHIMP_SERVER || '').trim();
 
-  // Test connectivity first
-  const testUrl = `https://${server}.api.mailchimp.com/3.0/`;
+  // Pre-flight DNS diagnostics
+  const domain = `${server}.api.mailchimp.com`;
+  console.log('[MAILCHIMP] Checking DNS for:', domain);
+  try {
+    const addresses = await new Promise((resolve, reject) => {
+      dns.resolve4(domain, (err, addrs) => (err ? reject(err) : resolve(addrs)));
+    });
+    console.log('[MAILCHIMP] ✓ DNS Resolved successfully:', addresses[0]);
+  } catch (dnsErr) {
+    console.error('[MAILCHIMP] ✗ DNS RESOLUTION FAILED:', dnsErr.message);
+    console.error('[MAILCHIMP] Possible causes: Network down, Firewall blocking Mailchimp, or improper Windows DNS settings.');
+  }
+
+  // Connectivity Test
+  const testUrl = `https://${domain}/3.0/`;
   console.log('[MAILCHIMP] Testing connectivity to:', testUrl);
   try {
     const res = await axios.get(testUrl, {
       headers: { Authorization: `apikey ${apiKey}` },
-      timeout: 5000
+      timeout: 8000
     });
     console.log('[MAILCHIMP] ✓ Connectivity test successful:', res.status);
   } catch (err) {
     console.warn('[MAILCHIMP] ⚠️ Connectivity test warning:', err.message);
-    if (err.code === 'ENOTFOUND') {
-      console.error('[MAILCHIMP] ❌ CRITICAL: Domain resolution failed even with axios. This is a system-level DNS issue.');
-    }
   }
 
   const maskedKey = apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}` : 'MISSING';
@@ -74,8 +94,15 @@ function resolveImageUrl(img) {
  */
 async function fetchLatestNews(excludeDocumentId, limit = 8) {
   try {
-    console.log('[MAILCHIMP] Fetching latest news... excluding:', excludeDocumentId);
-    // In Strapi 5, it's recommended to use strapi.documents
+    console.log('[MAILCHIMP] Fetching latest news... excluding documentId:', excludeDocumentId);
+
+    // Debug: fetch all to see what's available
+    const allItems = await strapi.documents('api::news-section.news-section').findMany({ limit: 5 });
+    console.log(`[MAILCHIMP] DEBUG: Total items in news-section (any status): ${allItems?.length || 0}`);
+    if (allItems?.length > 0) {
+      console.log(`[MAILCHIMP] DEBUG: Sample item IDs:`, allItems.map(i => ({ id: i.id, docId: i.documentId, status: i.status })));
+    }
+
     const results = await strapi.documents('api::news-section.news-section').findMany({
       status: 'published',
       filters: {
@@ -99,6 +126,11 @@ async function fetchLatestNews(excludeDocumentId, limit = 8) {
 async function fetchAdvertisements(limit = 4) {
   try {
     console.log('[MAILCHIMP] Fetching advertisements...');
+
+    // Debug: fetch all
+    const allAds = await strapi.documents('api::advertisement.advertisement').findMany({ limit: 5 });
+    console.log(`[MAILCHIMP] DEBUG: Total items in advertisement (any status): ${allAds?.length || 0}`);
+
     const results = await strapi.documents('api::advertisement.advertisement').findMany({
       status: 'published',
       populate: ['ads_image'],
@@ -130,7 +162,7 @@ function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = [
   const slugValue = slug || slugFn(title || 'news', { lower: true, strict: true });
   const baseUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
   const imageUrl = resolveImageUrl(image);
-  
+
   const articleId = newsData.id || newsData._id || '';
   const articleUrl = articleId
     ? `${baseUrl}/page/article/${slugValue}?id=${articleId}`
@@ -270,7 +302,7 @@ function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = [
                 <tr>
                   <td style="padding:8px 20px;text-align:center;">
                     <span style="color:#d4a843;font-size:11px;font-weight:600;letter-spacing:0.5px;">
-                      ★ MINING DISCOVERY — Your Premier Source for Mining News & Investment Insights ★
+                     Mining Discovery - Your Source for Global Mining News
                     </span>
                   </td>
                 </tr>
@@ -320,12 +352,7 @@ function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = [
                     ${publishDate}
                   </td>
                   <td align="right" style="font-size:12px;color:#6b7280;">
-                    <!-- Social icons -->
-                    <a href="https://www.linkedin.com/company/miningdiscovery/posts/?feedView=all" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">in</a>
-                    <a href="https://x.com/MiningDiscovery" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">X</a>
-                    <a href="https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Fconfirmemail.php%3Fnext%3Dhttps%253A%252F%252Fwww.facebook.com%252Fgetminingnews" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">f</a>
-                    <a href="https://www.instagram.com/miningdiscovery" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">ig</a>
-                    <a href="https://www.youtube.com/@miningdiscovery?themeRefresh=1" target="_blank" style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:#d4a843;color:#ffffff;text-decoration:none;font-weight:700;font-size:10px;text-align:center;margin:0 3px;">YT</a>
+                    <!-- Date section only -->
                   </td>
                 </tr>
               </table>
@@ -385,16 +412,21 @@ function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = [
                   </td>
                 </tr>
 
-                <!-- Article description (FULL content) -->
+                <!-- Article description (Truncated) -->
                 <tr>
                   <td style="padding:16px 24px 8px 24px;font-size:15px;color:#374151;line-height:1.75;">
-                    ${description || short_description || ''}
+                    ${(description || short_description || '').substring(0, 500)}...
+                    <div style="margin-top:20px;">
+                      <a href="${articleUrl}" target="_blank" style="display:inline-block;background:#d4a843;color:#ffffff;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.5px;box-shadow:0 4px 6px rgba(184,134,58,0.2);">
+                        READ FULL ARTICLE →
+                      </a>
+                    </div>
                   </td>
                 </tr>
 
                 <!-- Article meta -->
                 <tr>
-                  <td style="padding:8px 24px 20px 24px;">
+                  <td style="padding:12px 24px 25px 24px;">
                     <div style="font-size:13px;color:#8c8c8c;">
                       ${publishDate} &nbsp;|&nbsp; Mining Discovery
                     </div>
