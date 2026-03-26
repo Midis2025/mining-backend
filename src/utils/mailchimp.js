@@ -10,15 +10,39 @@ if (dns.setDefaultResultOrder) {
 
 const axios = require('axios');
 
-// Fallback to Google DNS if local resolution fails
+// ======= SYSTEM-LEVEL DNS MONKEY-PATCH (Windows ENOTFOUND Fix) =======
+// Forces Node.js to use direct DNS resolution if the OS resolver fails
+const originalLookup = dns.lookup;
+dns.lookup = (hostname, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  
+  originalLookup(hostname, options, (err, address, family) => {
+    // If the OS resolver failed (ENOTFOUND), try a direct query
+    if (err && err.code === 'ENOTFOUND' && hostname.includes('mailchimp.com')) {
+      console.log(`[MAILCHIMP] 🛡️ OS DNS failed for ${hostname}, attempting direct bypass...`);
+      dns.resolve4(hostname, (dnsErr, addresses) => {
+        if (!dnsErr && addresses && addresses.length > 0) {
+          console.log(`[MAILCHIMP] ✅ Direct bypass success: ${addresses[0]}`);
+          return callback(null, addresses[0], 4);
+        }
+        return callback(err, address, family); // Return original OS error if fallback fails
+      });
+      return;
+    }
+    return callback(err, address, family);
+  });
+};
+
+// Fallback to Google DNS for direct resolution logic
 if (dns.setServers) {
   try {
     dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-    console.log('[MAILCHIMP] DNS: Google/Cloudflare servers configured for fallback');
-  } catch (e) {
-    console.warn('[MAILCHIMP] DNS: Failed to set custom servers:', e.message);
-  }
+  } catch (e) {}
 }
+// ======================================================================
 
 /**
  * Initialize Mailchimp client
@@ -396,40 +420,42 @@ function generateNewsEmailTemplate(newsData, latestNews = [], advertisements = [
 
                 <!-- Article title -->
                 <tr>
-                  <td style="padding:20px 24px 0 24px;">
-                    <h1 style="margin:0;padding:0;font-size:24px;font-weight:800;color:#1a1a2e;line-height:1.3;">
-                      <a href="${articleUrl}" target="_blank" style="text-decoration:none;color:#1a1a2e;">
-                        ${title || 'News Update'}
-                      </a>
+                  <td style="padding:25px 30px 0 30px;">
+                    <div style="display:inline-block;background-color:#fcf8e8;color:#d4a843;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;border:1px solid #faeec7;">
+                      Corporate News
+                    </div>
+                    <h1 style="margin:0;padding:0;font-size:28px;font-weight:800;color:#1a1a2e;line-height:1.2;letter-spacing:-0.5px;">
+                      ${title || 'News Update'}
                     </h1>
                   </td>
                 </tr>
 
-                <!-- Divider line -->
+                <!-- Divider line with gradient -->
                 <tr>
-                  <td style="padding:14px 24px 0 24px;">
-                    <div style="height:2px;background:linear-gradient(90deg,#d4a843,#e8d5a8);border-radius:1px;" aria-hidden="true"></div>
+                  <td style="padding:15px 30px 0 30px;">
+                    <div style="height:3px;width:60px;background:linear-gradient(90deg,#d4a843,#f3d99d);border-radius:2px;" aria-hidden="true"></div>
                   </td>
                 </tr>
 
-                <!-- Article description (Truncated) -->
+                <!-- Article content (Full) -->
                 <tr>
-                  <td style="padding:16px 24px 8px 24px;font-size:15px;color:#374151;line-height:1.75;">
-                    ${(description || short_description || '').substring(0, 500)}...
-                    <div style="margin-top:20px;">
-                      <a href="${articleUrl}" target="_blank" style="display:inline-block;background:#d4a843;color:#ffffff;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.5px;box-shadow:0 4px 6px rgba(184,134,58,0.2);">
-                        READ FULL ARTICLE →
-                      </a>
+                  <td style="padding:20px 30px;font-size:16px;color:#2d3748;line-height:1.8;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <div class="article-body">
+                      ${description || short_description || ''}
                     </div>
                   </td>
                 </tr>
 
-                <!-- Article meta -->
+                <!-- Article footer / meta -->
                 <tr>
-                  <td style="padding:12px 24px 25px 24px;">
-                    <div style="font-size:13px;color:#8c8c8c;">
-                      ${publishDate} &nbsp;|&nbsp; Mining Discovery
-                    </div>
+                  <td style="padding:0 30px 35px 30px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-top:1px solid #f0f0f0;padding-top:15px;">
+                      <tr>
+                        <td style="font-size:13px;color:#8c8c8c;font-style:italic;">
+                          Released on ${publishDate} &nbsp;•&nbsp; Mining Discovery
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
