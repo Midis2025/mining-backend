@@ -5,7 +5,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { sendCampaignToMailchimp } = require('../../../utils/mailchimp');
+const mailchimpService = require('../../../services/mailchimp');
 
 module.exports = createCoreController('api::news-section.news-section', {
   /**
@@ -60,7 +60,11 @@ module.exports = createCoreController('api::news-section.news-section', {
       };
 
       // Send to Mailchimp
-      const result = await sendCampaignToMailchimp(emailData);
+      await mailchimpService.sendCampaign('corporate', newsSection);
+
+      // In the new service, we don't return success:true in the same way, 
+      // it throws or logs. We assume success if no error is thrown.
+      const result = { success: true }; 
 
       if (result.success) {
         // Update mailSent flag

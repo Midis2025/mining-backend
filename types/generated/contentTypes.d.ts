@@ -822,6 +822,7 @@ export interface ApiMagazineMagazine extends Struct.CollectionTypeSchema {
       'api::magazine.magazine'
     > &
       Schema.Attribute.Private;
+    mailSent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     publishDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
@@ -1249,6 +1250,7 @@ export interface ApiSubscriberSubscriber extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    subscriptions: Schema.Attribute.JSON;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

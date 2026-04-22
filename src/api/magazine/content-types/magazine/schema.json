@@ -52,6 +52,10 @@
     },
     "features": {
       "type": "text"
+    },
+    "mailSent": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
