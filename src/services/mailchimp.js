@@ -42,9 +42,6 @@ class MailchimpService {
     console.log('[MAILCHIMP] ✅ Service initialized');
   }
 
-  /**
-   * Sync subscriber to Mailchimp
-   */
   async syncSubscriber(subscriber) {
     if (!this.initialized) this.configure();
 
@@ -53,24 +50,32 @@ class MailchimpService {
     const subscriberHash = crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
 
     try {
+      console.log(`[MAILCHIMP] 🔄 Syncing subscriber to Midis: ${email}`);
+
+      // 1. Add/Update Subscriber (Idempotent)
       await mailchimp.lists.setListMember(listId, subscriberHash, {
         email_address: email,
         status_if_new: 'subscribed',
         merge_fields: {
-          FNAME: subscriber.firstName || '',
+          FNAME: subscriber.firstName || subscriber.name || '',
           LNAME: subscriber.lastName || '',
         },
       });
 
-      if (subscriber.subscriptions) {
-        const tags = Object.keys(subscriber.subscriptions).filter(k => subscriber.subscriptions[k]);
-        if (tags.length > 0) {
-          await mailchimp.lists.updateListMemberTags(listId, subscriberHash, {
-            tags: tags.map(t => ({ name: t, status: 'active' })),
-          });
-        }
+      // 2. Resolve Tags
+      const tags = ['NEW_SUBSCRIBER']; // Required for Welcome Automation trigger
+
+      if (Array.isArray(subscriber.subscriptions)) {
+        if (subscriber.subscriptions.includes('magazines')) tags.push('MAGAZINES');
+        if (subscriber.subscriptions.includes('corporate_news')) tags.push('CORPORATE_NEWS');
       }
-      console.log(`[MAILCHIMP] ✅ Synced subscriber: ${email}`);
+
+      // 3. Apply Tags
+      await mailchimp.lists.updateListMemberTags(listId, subscriberHash, {
+        tags: tags.map(tag => ({ name: tag, status: 'active' })),
+      });
+
+      console.log(`[MAILCHIMP] ✅ Subscriber synced with tags: ${tags.join(', ')}`);
     } catch (error) {
       console.error(`[MAILCHIMP] ❌ Error syncing subscriber:`, error.message);
     }
@@ -166,10 +171,14 @@ class MailchimpService {
     const title = content.Title || content.title;
     const description = content.Description || content.short_description || '';
 
-    // Resolve PDF Link
+    // Resolve Link
     let link = `${frontendUrl}/${contentType}/${content.Slug || content.slug || ''}`;
     if (contentType === 'magazine' && content.pdf) {
       link = this.resolveMediaUrl(content.pdf);
+    } else if (contentType === 'corporate') {
+      const slug = content.Slug || content.slug || '';
+      const docId = content.documentId || content.id || '';
+      link = `${frontendUrl}/page/article/${slug}?id=${docId}`;
     }
 
     const imageUrl = this.resolveMediaUrl(content.coverImage || content.image);
@@ -238,13 +247,13 @@ class MailchimpService {
 
   resolveMediaUrl(media) {
     if (!media || !media.url) return null;
-    
+
     let url = media.url;
     console.log(`[MAILCHIMP] 📁 Processing Media: ${media.name} | Raw URL: ${url}`);
-    
+
     // 1. If it's already an absolute URL (starts with http), use it
     if (url.startsWith('http')) return url;
-    
+
     // 2. Remove any query strings (like ?updatedAt=...) that might confuse the link
     url = url.split('?')[0];
 
@@ -254,11 +263,11 @@ class MailchimpService {
     } else if (url.startsWith('uploads/')) {
       url = url.replace('uploads/', '/');
     }
-    
+
     // 4. Prepend the Media domain
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
     const finalUrl = `https://acceptable-desire-0cca5bb827.media.strapiapp.com${cleanUrl}`;
-    
+
     console.log(`[MAILCHIMP] 🔗 Final Resolved URL: ${finalUrl}`);
     return finalUrl;
   }
