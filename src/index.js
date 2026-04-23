@@ -10,7 +10,7 @@ module.exports = {
     // STRAPI 5 MIDDLEWARE: Catch every single document action
     strapi.documents.use(async (context, next) => {
       const { action, uid, documentId } = context;
-      
+
       // Execute the action first
       const result = await next();
 
@@ -18,11 +18,13 @@ module.exports = {
       if (action === 'publish' || action === 'update') {
         const finalDocId = documentId || result?.documentId || context.params?.documentId;
         console.log(`[DOC MIDDLEWARE] 🎯 Action: ${action} | UID: ${uid} | DocID: ${finalDocId}`);
-        
+
         if (uid === 'api::news-section.news-section') {
           await handleNewsMail(result, finalDocId, action === 'publish');
         } else if (uid === 'api::magazine.magazine') {
           await handleMagazineMail(result, finalDocId, action === 'publish');
+        } else if (uid === 'api::post-newsletter.post-newsletter') {
+          await handlePostNewsletterMail(result, finalDocId, action === 'publish');
         }
       }
 
@@ -66,7 +68,7 @@ module.exports = {
       if (currentStatus === 'published' && !doc.mailSent) {
         console.log(`[MAILCHIMP] 📢 Attempting Magazine Campaign: ${doc.Title}`);
         const success = await mailchimpService.sendCampaign('magazine', doc);
-        
+
         if (success) {
           await strapi.documents('api::magazine.magazine').update({
             documentId: documentId,
@@ -104,10 +106,14 @@ module.exports = {
         const isCorporateNews = doc.news_categories?.some(
           (cat) => cat.slug === 'corporate-news'
         );
+        const isEveningChatter = doc.news_categories?.some(
+          (cat) => cat.slug === 'evening-chatter'
+        );
 
-        if (isCorporateNews) {
-          console.log(`[MAILCHIMP] ✅ Corporate News matched! Creating draft...`);
-          const success = await mailchimpService.sendCampaign('corporate', doc);
+        if (isCorporateNews || isEveningChatter) {
+          const type = isCorporateNews ? 'corporate' : 'evening-chatter';
+          console.log(`[MAILCHIMP] ✅ ${type} matched! Creating draft...`);
+          const success = await mailchimpService.sendCampaign(type, doc);
 
           if (success) {
             await strapi.documents('api::news-section.news-section').update({
@@ -116,6 +122,43 @@ module.exports = {
               status: 'published',
             });
           }
+        }
+      }
+    }
+
+    // 4. Post Newsletter Lifecycle
+    strapi.db.lifecycles.subscribe({
+      models: ['api::post-newsletter.post-newsletter'],
+      async afterCreate(event) {
+        await handlePostNewsletterMail(event.result, event.result.documentId);
+      },
+      async afterUpdate(event) {
+        await handlePostNewsletterMail(event.result, event.result.documentId);
+      },
+    });
+
+    async function handlePostNewsletterMail(result, docId, isPublishAction = false) {
+      const documentId = docId || result?.documentId || result?.document_id;
+      if (!documentId) return;
+
+      const doc = await strapi.documents('api::post-newsletter.post-newsletter').findOne({
+        documentId: documentId,
+        populate: ['pdfFile', 'coverImage', 'newsletter_category'],
+      });
+
+      const currentStatus = isPublishAction ? 'published' : (doc.status || (doc.publishedAt ? 'published' : 'draft'));
+      console.log(`[MAILCHIMP] Post Newsletter Hook: ID=${documentId}, Status=${currentStatus}, mailSent=${doc.mailSent}`);
+
+      if (currentStatus === 'published' && !doc.mailSent) {
+        console.log(`[MAILCHIMP] 📢 Attempting Post Newsletter Campaign: ${doc.title}`);
+        const success = await mailchimpService.sendCampaign('post-newsletter', doc);
+
+        if (success) {
+          await strapi.documents('api::post-newsletter.post-newsletter').update({
+            documentId: documentId,
+            data: { mailSent: true },
+            status: 'published',
+          });
         }
       }
     }

@@ -68,6 +68,8 @@ class MailchimpService {
       if (Array.isArray(subscriber.subscriptions)) {
         if (subscriber.subscriptions.includes('magazines')) tags.push('MAGAZINES');
         if (subscriber.subscriptions.includes('corporate_news')) tags.push('CORPORATE_NEWS');
+        if (subscriber.subscriptions.includes('daily-newsletter')) tags.push('daily-newsletter');
+        if (subscriber.subscriptions.includes('weekly-newsletter')) tags.push('weekly-newsletter');
       }
 
       // 3. Apply Tags
@@ -88,8 +90,20 @@ class MailchimpService {
     if (!this.initialized) this.configure();
 
     const listId = process.env.MAILCHIMP_LIST_ID || process.env.MAILCHIMP_AUDIENCE_ID;
-    const tag = contentType === 'magazine' ? 'MAGAZINES' : 'corporate-news';
-    const subjectPrefix = contentType === 'magazine' ? '📢 New Magazine Released' : '📢 Corporate Update';
+    let tag = 'corporate-news';
+    let subjectPrefix = '📢 Corporate Update';
+
+    if (contentType === 'magazine') {
+      tag = 'MAGAZINES';
+      subjectPrefix = '📢 New Magazine Released';
+    } else if (contentType === 'evening-chatter') {
+      tag = 'evening-chatter';
+      subjectPrefix = '🌆 Evening Chatter';
+    } else if (contentType === 'post-newsletter') {
+      tag = content.newsletter_category?.slug || 'daily-newsletter';
+      subjectPrefix = '📰 Newsletter';
+    }
+
     const title = content.Title || content.title;
     const subjectLine = `${subjectPrefix} - ${title}`;
 
@@ -169,16 +183,18 @@ class MailchimpService {
     const strapiUrl = process.env.STRAPI_URL || 'https://admins.miningdiscovery.com';
 
     const title = content.Title || content.title;
-    const description = content.Description || content.short_description || '';
+    const description = content.Description || content.short_description || content.description || '';
 
     // Resolve Link
     let link = `${frontendUrl}/${contentType}/${content.Slug || content.slug || ''}`;
     if (contentType === 'magazine' && content.pdf) {
       link = this.resolveMediaUrl(content.pdf);
-    } else if (contentType === 'corporate') {
+    } else if (contentType === 'corporate' || contentType === 'evening-chatter') {
       const slug = content.Slug || content.slug || '';
       const docId = content.documentId || content.id || '';
       link = `${frontendUrl}/page/article/${slug}?id=${docId}`;
+    } else if (contentType === 'post-newsletter' && content.pdfFile) {
+      link = this.resolveMediaUrl(content.pdfFile);
     }
 
     const imageUrl = this.resolveMediaUrl(content.coverImage || content.image);
@@ -231,12 +247,12 @@ class MailchimpService {
             </div>
             ` : ''}
             <div class="cta-container">
-                <a href="${link}" class="btn">${contentType === 'magazine' ? '📄 Open PDF' : '📖 Read More'}</a>
+                <a href="${link}" class="btn">${(contentType === 'magazine' || contentType === 'post-newsletter') ? '📄 Open PDF' : '📖 Read More'}</a>
             </div>
         </div>
         <div class="footer">
             <p><strong>Mining Discovery Platform</strong></p>
-            <p>You are receiving this because you opted in for ${contentType === 'magazine' ? 'Magazines' : 'Corporate News'}.</p>
+            <p>You are receiving this because you opted in for ${contentType === 'magazine' ? 'Magazines' : contentType === 'evening-chatter' ? 'Evening Chatter' : contentType === 'post-newsletter' ? 'Newsletters' : 'Corporate News'}.</p>
             <p><a href="*|UNSUB|*">Unsubscribe from these emails</a></p>
         </div>
     </div>

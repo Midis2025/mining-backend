@@ -1068,6 +1068,7 @@ export interface ApiPostNewsletterPostNewsletter
       'api::post-newsletter.post-newsletter'
     > &
       Schema.Attribute.Private;
+    mailSent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     newsletter_category: Schema.Attribute.Relation<
       'oneToOne',
       'api::newsletter-category.newsletter-category'

@@ -41,6 +41,10 @@
     },
     "description": {
       "type": "richtext"
+    },
+    "mailSent": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
