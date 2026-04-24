@@ -464,7 +464,24 @@ class MailchimpService {
             <!-- ADVERTISEMENT BANNER -->
             <tr>
                 <td style="padding: 0 0 20px 0;">
-                    <img src="https://res.cloudinary.com/dntahkr0a/image/upload/q_auto/f_auto/v1777024784/Mining_Investment_Banner_cuywie.jpg" alt="The Mining Investment Event 2026" style="width: 100%; max-width: 600px; display: block;" width="600">
+                    <a href="https://www.themininginvestmentevent.com/register" target="_blank">
+                        <img src="https://res.cloudinary.com/dntahkr0a/image/upload/q_auto/f_auto/v1777024784/Mining_Investment_Banner_cuywie.jpg" alt="The Mining Investment Event 2026" style="width: 100%; max-width: 600px; display: block;" width="600">
+                    </a>
+                </td>
+            </tr>
+
+            <!-- AD BUTTON -->
+            <tr>
+                <td style="padding: 0 40px 30px 40px; text-align: center;">
+                    <table align="center" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td align="center" bgcolor="#a48045" style="border-radius: 4px;">
+                                <a href="https://www.themininginvestmentevent.com/register" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 40px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">
+                                    Register for Event
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
 
