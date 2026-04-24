@@ -1,2 +1,3 @@
 const db = require('better-sqlite3')('.tmp/data.db');
-console.log(db.prepare(`SELECT url FROM files WHERE mime LIKE '%pdf%' ORDER BY id DESC LIMIT 5`).all());
+db.prepare("UPDATE files SET url = '/uploads/Newsletter_March_Week_5_d139268f31.pdf' WHERE url LIKE '%Newsletter_March_Week_5%'").run();
+console.log('Updated DB');
