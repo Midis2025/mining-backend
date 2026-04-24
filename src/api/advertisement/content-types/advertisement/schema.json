@@ -26,6 +26,9 @@
     },
     "ad_url": {
       "type": "string"
+    },
+    "vertical_banner": {
+      "type": "boolean"
     }
   }
 }

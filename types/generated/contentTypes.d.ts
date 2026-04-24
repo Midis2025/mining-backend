@@ -430,6 +430,7 @@ export interface ApiAdvertisementAdvertisement
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    vertical_banner: Schema.Attribute.Boolean;
   };
 }
 
