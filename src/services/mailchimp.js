@@ -21,6 +21,44 @@ class MailchimpService {
     this.initialized = false;
   }
 
+  normalizeSubscriptions(subscriptions) {
+    let subs = subscriptions;
+    if (typeof subs === 'string') {
+      try { subs = JSON.parse(subs); } catch { subs = []; }
+    }
+    if (!Array.isArray(subs)) return [];
+
+    return subs
+      .filter(Boolean)
+      .map((sub) => String(sub).trim().toLowerCase().replace(/\s+/g, '-'));
+  }
+
+  getSubscriberTags(subscriptions) {
+    const subs = this.normalizeSubscriptions(subscriptions);
+    const tags = ['NEW_SUBSCRIBER'];
+
+    const hasAny = (...aliases) => aliases.some((alias) => subs.includes(alias));
+
+    if (hasAny('magazine', 'magazines', 'magzine')) tags.push('MAGAZINES');
+    if (hasAny('corporate-news', 'corporate_news', 'corporate')) tags.push('CORPORATE_NEWS');
+    if (hasAny('daily', 'daily-newsletter')) tags.push('daily-newsletter');
+    if (hasAny('weekly', 'weekly-newsletter')) tags.push('weekly-newsletter');
+
+    return [...new Set(tags)];
+  }
+
+  normalizeNewsletterTag(tag) {
+    const normalizedTag = String(tag || '').trim().toLowerCase().replace(/\s+/g, '-');
+    const tagMap = {
+      daily: 'daily-newsletter',
+      'daily-newsletter': 'daily-newsletter',
+      weekly: 'weekly-newsletter',
+      'weekly-newsletter': 'weekly-newsletter',
+    };
+
+    return tagMap[normalizedTag] || normalizedTag;
+  }
+
   /**
    * Initialize Mailchimp SDK
    */
@@ -68,24 +106,12 @@ class MailchimpService {
         status_if_new: 'subscribed',
       });
 
-      // 2. Parse subscriptions safely.
-      //    Strapi DB lifecycle hooks sometimes return JSON fields as a raw string
-      //    instead of a parsed array — handle both cases.
-      let subs = subscriber.subscriptions;
-      if (typeof subs === 'string') {
-        try { subs = JSON.parse(subs); } catch { subs = []; }
-      }
-      if (!Array.isArray(subs)) subs = [];
-
+      const subs = this.normalizeSubscriptions(subscriber.subscriptions);
       console.log(`[MAILCHIMP] 📋 Subscriptions for ${email}:`, subs);
 
       // 3. Build tag list based on what the user actually subscribed to.
       //    NEW_SUBSCRIBER is always added — it triggers the Welcome Journey in Mailchimp.
-      const tags = ['NEW_SUBSCRIBER'];
-      if (subs.includes('magazines')) tags.push('MAGAZINES');
-      if (subs.includes('corporate_news')) tags.push('CORPORATE_NEWS');
-      if (subs.includes('daily-newsletter')) tags.push('daily-newsletter');
-      if (subs.includes('weekly-newsletter')) tags.push('weekly-newsletter');
+      const tags = this.getSubscriberTags(subs);
 
       // 4. Apply tags to the subscriber in Mailchimp
       await mailchimp.lists.updateListMemberTags(listId, subscriberHash, {
@@ -133,7 +159,7 @@ class MailchimpService {
 
     // For post-newsletter, derive tag from the newsletter_category slug
     if (contentType === 'post-newsletter') {
-      tag = content.newsletter_category?.slug || 'daily-newsletter';
+      tag = this.normalizeNewsletterTag(content.newsletter_category?.slug || content.newsletter_category?.name || 'daily-newsletter');
     }
 
     if (!tag) {

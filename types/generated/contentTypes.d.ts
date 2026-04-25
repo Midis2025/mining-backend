@@ -1016,6 +1016,40 @@ export interface ApiNewsletterNewsletter extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiOurArtcileOurArtcile extends Struct.CollectionTypeSchema {
+  collectionName: 'our_artciles';
+  info: {
+    displayName: 'Our Artcile';
+    pluralName: 'our-artciles';
+    singularName: 'our-artcile';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    agreeToNewsletter: Schema.Attribute.Boolean;
+    companyName: Schema.Attribute.String;
+    country: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    firstname: Schema.Attribute.String;
+    jobTitle: Schema.Attribute.String;
+    lastname: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::our-artcile.our-artcile'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPopUpVideoPopUpVideo extends Struct.CollectionTypeSchema {
   collectionName: 'pop_up_videos';
   info: {
@@ -1832,6 +1866,7 @@ declare module '@strapi/strapi' {
       'api::news-section.news-section': ApiNewsSectionNewsSection;
       'api::newsletter-category.newsletter-category': ApiNewsletterCategoryNewsletterCategory;
       'api::newsletter.newsletter': ApiNewsletterNewsletter;
+      'api::our-artcile.our-artcile': ApiOurArtcileOurArtcile;
       'api::pop-up-video.pop-up-video': ApiPopUpVideoPopUpVideo;
       'api::post-newsletter.post-newsletter': ApiPostNewsletterPostNewsletter;
       'api::project.project': ApiProjectProject;
