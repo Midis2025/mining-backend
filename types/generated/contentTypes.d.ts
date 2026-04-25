@@ -1027,23 +1027,28 @@ export interface ApiOurArtcileOurArtcile extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    agreeToNewsletter: Schema.Attribute.Boolean;
-    companyName: Schema.Attribute.String;
-    country: Schema.Attribute.String;
+    buttonLink: Schema.Attribute.String;
+    buttonText: Schema.Attribute.String;
+    coverImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    email: Schema.Attribute.Email;
-    firstname: Schema.Attribute.String;
-    jobTitle: Schema.Attribute.String;
-    lastname: Schema.Attribute.String;
+    Description: Schema.Attribute.RichText;
+    features: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::our-artcile.our-artcile'
     > &
       Schema.Attribute.Private;
+    mailSent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    publishDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
+    Slug: Schema.Attribute.UID<'Title'>;
+    Title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

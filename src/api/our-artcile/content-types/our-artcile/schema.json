@@ -11,26 +11,51 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "firstname": {
+    "Title": {
       "type": "string"
     },
-    "lastname": {
+    "Slug": {
+      "type": "uid",
+      "targetField": "Title"
+    },
+    "Description": {
+      "type": "richtext"
+    },
+    "coverImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "publishDate": {
+      "type": "date"
+    },
+    "buttonText": {
       "type": "string"
     },
-    "email": {
-      "type": "email"
-    },
-    "jobTitle": {
+    "buttonLink": {
       "type": "string"
     },
-    "companyName": {
-      "type": "string"
+    "pdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     },
-    "country": {
-      "type": "string"
+    "features": {
+      "type": "text"
     },
-    "agreeToNewsletter": {
-      "type": "boolean"
+    "mailSent": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
