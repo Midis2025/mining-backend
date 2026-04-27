@@ -303,19 +303,19 @@ class MailchimpService {
     const label = labelMap[contentType] || 'News';
 
     // Resolve Link
-    let link = `${frontendUrl}/${contentType}/${content.Slug || content.slug || ''}`;
+    let link = `${frontendUrl}/${contentType}/${content.documentId || content.id || ''}`;
+    
     if (contentType === 'magazine' && content.pdf) {
       link = this.resolveMediaUrl(content.pdf);
-    } else if (contentType === 'corporate' || contentType === 'evening-chatter') {
-      const slug = content.Slug || content.slug || '';
-      const docId = content.documentId || content.id || '';
-      link = `${frontendUrl}/page/article/${slug}?id=${docId}`;
     } else if (contentType === 'post-newsletter' && content.pdfFile) {
       link = this.resolveMediaUrl(content.pdfFile);
+    } else if (contentType === 'corporate' || contentType === 'evening-chatter') {
+      // Use the news article format for these types as requested
+      link = `${frontendUrl}/news/${content.documentId || content.id || ''}`;
     }
 
     const imageUrl = this.resolveMediaUrl(content.coverImage || content.image) || 'https://placehold.co/520x340/333333/a48045?text=Mining+Discovery';
-    const buttonText = (contentType === 'magazine' || contentType === 'post-newsletter') ? 'Open PDF' : 'Explore More';
+    const buttonText = (contentType === 'magazine' || contentType === 'post-newsletter') ? 'Open PDF' : 'Explore Now';
 
     // Split description into paragraphs
     const paragraphs = description
@@ -349,9 +349,9 @@ class MailchimpService {
     </style>
     <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-    <center style="width: 100%; background-color: #f4f4f4; padding-top: 20px; padding-bottom: 20px;">
-        <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 15px rgba(0,0,0,0.05);">
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <center style="width: 100%; background-color: #f8f9fa; padding-top: 20px; padding-bottom: 20px;">
+        <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
             <!-- TOP BANNER -->
             <tr>
                 <td style="padding: 0;">
@@ -363,23 +363,23 @@ class MailchimpService {
 
             <!-- MAIN NEWS SECTION -->
             <tr>
-                <td style="padding: 30px 40px 10px 40px; text-align: left;">
-                    <p style="margin: 0 0 5px 0; font-size: 16px; font-weight: 800; color: #0e1824; text-transform: uppercase;">${label}</p>
-                    <h1 style="margin: 0 0 20px 0; font-size: 28px; color: #a48045; font-weight: bold; line-height: 1.2;">
+                <td style="padding: 40px 40px 10px 40px; text-align: left;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 800; color: #a48045; text-transform: uppercase; letter-spacing: 1px;">${label}</p>
+                    <h1 style="margin: 0 0 25px 0; font-size: 32px; color: #0e1824; font-weight: bold; line-height: 1.1; letter-spacing: -0.5px;">
                         ${title}
                     </h1>
-                    <img src="${imageUrl}" alt="${title}" style="width: 100%; max-width: 520px; display: block; border-radius: 4px;" width="520">
+                    <img src="${imageUrl}" alt="${title}" style="width: 100%; max-width: 520px; display: block; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" width="520">
                 </td>
             </tr>
 
             <!-- MAIN ARTICLE TEXT -->
             <tr>
-                <td style="padding: 10px 40px 30px 40px; color: #1a1a1a; font-size: 15px; line-height: 1.6; text-align: left;">
+                <td style="padding: 20px 40px 30px 40px; color: #333333; font-size: 16px; line-height: 1.7; text-align: left;">
                     ${paragraphs}
 
                     ${featuresList ? `
-                    <div style="margin-top: 25px; padding: 20px; background-color: #fdfaf3; border-left: 4px solid #a48045; border-radius: 4px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #0e1824;">Highlights:</h3>
+                    <div style="margin-top: 30px; padding: 25px; background-color: #fdfaf3; border-left: 5px solid #a48045; border-radius: 4px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #0e1824; font-weight: bold;">Key Highlights:</h3>
                         <ul style="margin: 0; padding-left: 20px; color: #444;">
                             ${featuresList}
                         </ul>
@@ -390,57 +390,68 @@ class MailchimpService {
 
             <!-- EXPLORE MORE BUTTON -->
             <tr>
-                <td style="padding: 0 40px 40px 40px; text-align: center;">
+                <td style="padding: 0 40px 50px 40px; text-align: center;">
                     <table align="center" cellpadding="0" cellspacing="0" border="0">
                         <tr>
-                            <td align="center" bgcolor="#a48045" style="border-radius: 4px;">
-                                <a href="${link}" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 40px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">
+                            <td align="center" bgcolor="#a48045" style="border-radius: 4px; box-shadow: 0 4px 8px rgba(164, 128, 69, 0.3);">
+                                <a href="${link}" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 14px 45px; border: 1px solid #a48045; display: inline-block; font-weight: bold; letter-spacing: 0.5px;">
                                     ${buttonText}
                                 </a>
                             </td>
                         </tr>
                     </table>
+                </td>
+            </tr>
+
             ${topNews && topNews.length > 0 ? `
+            <!-- DIVIDER FOR TOP NEWS -->
+            <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                    <div style="border-top: 2px solid #f0f0f0;"></div>
+                </td>
+            </tr>
+
             <!-- TOP NEWS TITLE -->
             <tr>
-                <td style="padding: 0 40px 20px 40px; text-align: left;">
-                    <h2 style="margin: 0; font-size: 32px; color: #0e1824; font-weight: bold;">Top News</h2>
+                <td style="padding: 0 40px 35px 40px; text-align: center;">
+                    <h2 style="margin: 0; font-size: 28px; color: #0e1824; font-weight: 800; letter-spacing: -0.5px;">Top News</h2>
                 </td>
             </tr>
 
             ${topNews.map((news, index) => {
               const newsTitle = news.Title || news.title;
               const newsImageUrl = this.resolveMediaUrl(news.image) || 'https://placehold.co/240x160/333333/a48045?text=News';
-              const newsSlug = news.Slug || news.slug || '';
               const newsId = news.documentId || news.id || '';
-              const newsLink = `${frontendUrl}/page/article/${newsSlug}?id=${newsId}`;
+              const newsLink = `${frontendUrl}/news/${newsId}`;
               
-              // Alternating layout: index 0 and 2 have text left, index 1 has image left (as in user's template)
+              // Alternating layout: index 0 and 2 have text left, index 1 has image left
               const isTextLeft = index % 2 === 0;
 
               if (isTextLeft) {
                 return `
                 <!-- TOP NEWS ITEM (Text Left) -->
                 <tr>
-                    <td style="padding: 0 40px 30px 40px;">
+                    <td style="padding: 0 40px 45px 40px;">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <!-- Text Block -->
-                                <td width="48%" valign="middle" style="padding-right: 4%;">
-                                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1a1a1a; line-height: 1.4; font-weight: 600;">
+                                <td width="55%" valign="top" style="padding-right: 25px;">
+                                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #0e1824; line-height: 1.4; font-weight: 700;">
                                         ${newsTitle}
                                     </h3>
                                     <table cellpadding="0" cellspacing="0" border="0">
                                         <tr>
                                             <td align="center" bgcolor="#a48045" style="border-radius: 4px;">
-                                                <a href="${newsLink}" target="_blank" style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 8px 18px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">Click to read more</a>
+                                                <a href="${newsLink}" target="_blank" style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 10px 22px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">Click to read more</a>
                                             </td>
                                         </tr>
                                     </table>
                                 </td>
                                 <!-- Image Block -->
-                                <td width="48%" valign="middle">
-                                    <img src="${newsImageUrl}" alt="${newsTitle}" style="width: 100%; max-width: 240px; display: block; border-radius: 4px;" width="240">
+                                <td width="45%" valign="top">
+                                    <a href="${newsLink}" target="_blank">
+                                        <img src="${newsImageUrl}" alt="${newsTitle}" style="width: 100%; max-width: 240px; display: block; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);" width="240">
+                                    </a>
                                 </td>
                             </tr>
                         </table>
@@ -451,22 +462,24 @@ class MailchimpService {
                 return `
                 <!-- TOP NEWS ITEM (Image Left) -->
                 <tr>
-                    <td style="padding: 0 40px 30px 40px;">
+                    <td style="padding: 0 40px 45px 40px;">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <!-- Image Block -->
-                                <td width="48%" valign="middle" style="padding-right: 4%;">
-                                    <img src="${newsImageUrl}" alt="${newsTitle}" style="width: 100%; max-width: 240px; display: block; border-radius: 4px;" width="240">
+                                <td width="45%" valign="top" style="padding-right: 25px;">
+                                    <a href="${newsLink}" target="_blank">
+                                        <img src="${newsImageUrl}" alt="${newsTitle}" style="width: 100%; max-width: 240px; display: block; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);" width="240">
+                                    </a>
                                 </td>
                                 <!-- Text Block -->
-                                <td width="48%" valign="middle">
-                                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1a1a1a; line-height: 1.4; text-align: right; font-weight: 600;">
+                                <td width="55%" valign="top">
+                                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #0e1824; line-height: 1.4; text-align: left; font-weight: 700;">
                                         ${newsTitle}
                                     </h3>
-                                    <table cellpadding="0" cellspacing="0" border="0" align="right">
+                                    <table cellpadding="0" cellspacing="0" border="0" align="left">
                                         <tr>
                                             <td align="center" bgcolor="#a48045" style="border-radius: 4px;">
-                                                <a href="${newsLink}" target="_blank" style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 8px 18px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">Click to read more</a>
+                                                <a href="${newsLink}" target="_blank" style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 10px 22px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">Click to read more</a>
                                             </td>
                                         </tr>
                                     </table>
@@ -482,14 +495,14 @@ class MailchimpService {
 
             <!-- DIVIDER -->
             <tr>
-                <td style="padding: 0 40px 20px 40px;">
-                    <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 0;">
+                <td style="padding: 0 40px 30px 40px;">
+                    <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 0;">
                 </td>
             </tr>
 
             <!-- ADVERTISEMENT BANNER -->
             <tr>
-                <td style="padding: 0 0 20px 0;">
+                <td style="padding: 0 0 25px 0;">
                     <a href="https://www.themininginvestmentevent.com/register" target="_blank">
                         <img src="https://res.cloudinary.com/dntahkr0a/image/upload/q_auto/f_auto/v1777024784/Mining_Investment_Banner_cuywie.jpg" alt="The Mining Investment Event 2026" style="width: 100%; max-width: 600px; display: block;" width="600">
                     </a>
@@ -498,11 +511,11 @@ class MailchimpService {
 
             <!-- AD BUTTON -->
             <tr>
-                <td style="padding: 0 40px 30px 40px; text-align: center;">
+                <td style="padding: 0 40px 40px 40px; text-align: center;">
                     <table align="center" cellpadding="0" cellspacing="0" border="0">
                         <tr>
-                            <td align="center" bgcolor="#a48045" style="border-radius: 4px;">
-                                <a href="https://www.themininginvestmentevent.com/register" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 40px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">
+                            <td align="center" bgcolor="#a48045" style="border-radius: 4px; box-shadow: 0 4px 8px rgba(164, 128, 69, 0.3);">
+                                <a href="https://www.themininginvestmentevent.com/register" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 14px 45px; border: 1px solid #a48045; display: inline-block; font-weight: bold;">
                                     Register for Event
                                 </a>
                             </td>
