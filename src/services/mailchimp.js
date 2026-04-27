@@ -292,7 +292,7 @@ class MailchimpService {
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.miningdiscovery.com';
     const title = content.Title || content.title || 'Mining Discovery Update';
     const description = content.Description || content.short_description || content.description || '';
-    
+
     // Resolve Content Label
     const labelMap = {
       'corporate': 'Corporate News',
@@ -304,7 +304,7 @@ class MailchimpService {
 
     // Resolve Link
     let link = `${frontendUrl}/${contentType}/${content.documentId || content.id || ''}`;
-    
+
     if (contentType === 'magazine' && content.pdf) {
       link = this.resolveMediaUrl(content.pdf);
     } else if (contentType === 'post-newsletter' && content.pdfFile) {
@@ -315,7 +315,7 @@ class MailchimpService {
     }
 
     const imageUrl = this.resolveMediaUrl(content.coverImage || content.image) || 'https://placehold.co/520x340/333333/a48045?text=Mining+Discovery';
-    const buttonText = (contentType === 'magazine' || contentType === 'post-newsletter') ? 'Open PDF' : 'Explore Now';
+    const buttonText = (contentType === 'magazine' || contentType === 'post-newsletter') ? 'Open PDF' : 'Read More';
 
     // Split description into paragraphs
     const paragraphs = description
@@ -332,9 +332,9 @@ class MailchimpService {
       .map(f => `<li style="margin-bottom: 10px;">${f.trim()}</li>`)
       .join('');
 
-    const subscriptionText = contentType === 'magazine' ? 'Magazines' : 
-                             contentType === 'evening-chatter' ? 'Evening Chatter' : 
-                             contentType === 'post-newsletter' ? 'Newsletters' : 'Corporate News';
+    const subscriptionText = contentType === 'magazine' ? 'Magazines' :
+      contentType === 'evening-chatter' ? 'Evening Chatter' :
+        contentType === 'post-newsletter' ? 'Newsletters' : 'Corporate News';
 
     return `
 <!DOCTYPE html>
@@ -419,16 +419,16 @@ class MailchimpService {
             </tr>
 
             ${topNews.map((news, index) => {
-              const newsTitle = news.Title || news.title;
-              const newsImageUrl = this.resolveMediaUrl(news.image) || 'https://placehold.co/240x160/333333/a48045?text=News';
-              const newsId = news.documentId || news.id || '';
-              const newsLink = `${frontendUrl}/news/${newsId}`;
-              
-              // Alternating layout: index 0 and 2 have text left, index 1 has image left
-              const isTextLeft = index % 2 === 0;
+      const newsTitle = news.Title || news.title;
+      const newsImageUrl = this.resolveMediaUrl(news.image) || 'https://placehold.co/240x160/333333/a48045?text=News';
+      const newsId = news.documentId || news.id || '';
+      const newsLink = `${frontendUrl}/news/${newsId}`;
 
-              if (isTextLeft) {
-                return `
+      // Alternating layout: index 0 and 2 have text left, index 1 has image left
+      const isTextLeft = index % 2 === 0;
+
+      if (isTextLeft) {
+        return `
                 <!-- TOP NEWS ITEM (Text Left) -->
                 <tr>
                     <td style="padding: 0 40px 45px 40px;">
@@ -458,8 +458,8 @@ class MailchimpService {
                     </td>
                 </tr>
                 `;
-              } else {
-                return `
+      } else {
+        return `
                 <!-- TOP NEWS ITEM (Image Left) -->
                 <tr>
                     <td style="padding: 0 40px 45px 40px;">
@@ -489,8 +489,8 @@ class MailchimpService {
                     </td>
                 </tr>
                 `;
-              }
-            }).join('')}
+      }
+    }).join('')}
             ` : ''}
 
             <!-- DIVIDER -->
