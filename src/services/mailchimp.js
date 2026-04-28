@@ -144,14 +144,14 @@ class MailchimpService {
     const TAG_MAP = {
       'magazine': 'MAGAZINES',
       'corporate': 'CORPORATE_NEWS',
-      'evening-chatter': 'evening-chatter',
+      'daily-newsletter': 'daily-newsletter',
       'post-newsletter': null, // resolved dynamically from newsletter_category slug
     };
 
     const SUBJECT_MAP = {
       'magazine': 'New Magazine Released',
       'corporate': 'Corporate Update',
-      'evening-chatter': 'Evening Chatter',
+      'daily-newsletter': 'Daily Newsletter',
       'post-newsletter': 'Newsletter',
     };
 
@@ -296,7 +296,7 @@ class MailchimpService {
     // Resolve Content Label
     const labelMap = {
       'corporate': 'Corporate News',
-      'evening-chatter': 'Evening Chatter',
+      'daily-newsletter': 'Daily Newsletter',
       'magazine': 'Magazine',
       'post-newsletter': 'Newsletter'
     };
@@ -309,7 +309,7 @@ class MailchimpService {
       link = this.resolveMediaUrl(content.pdf);
     } else if (contentType === 'post-newsletter' && content.pdfFile) {
       link = this.resolveMediaUrl(content.pdfFile);
-    } else if (contentType === 'corporate' || contentType === 'evening-chatter') {
+    } else if (contentType === 'corporate' || contentType === 'daily-newsletter') {
       // Use the news article format for these types as requested
       link = `${frontendUrl}/news/${content.documentId || content.id || ''}`;
     }
@@ -333,7 +333,7 @@ class MailchimpService {
       .join('');
 
     const subscriptionText = contentType === 'magazine' ? 'Magazines' :
-      contentType === 'evening-chatter' ? 'Evening Chatter' :
+      contentType === 'daily-newsletter' ? 'Daily Newsletter' :
         contentType === 'post-newsletter' ? 'Newsletters' : 'Corporate News';
 
     return `

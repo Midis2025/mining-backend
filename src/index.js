@@ -106,12 +106,12 @@ module.exports = {
         const isCorporateNews = doc.news_categories?.some(
           (cat) => cat.slug === 'corporate-news'
         );
-        const isEveningChatter = doc.news_categories?.some(
-          (cat) => cat.slug === 'evening-chatter'
+        const isDailyNewsletter = doc.news_categories?.some(
+          (cat) => cat.slug === 'daily-newsletter'
         );
 
-        if (isCorporateNews || isEveningChatter) {
-          const type = isCorporateNews ? 'corporate' : 'evening-chatter';
+        if (isCorporateNews || isDailyNewsletter) {
+          const type = isCorporateNews ? 'corporate' : 'daily-newsletter';
           console.log(`[MAILCHIMP] ✅ ${type} matched! Creating draft...`);
           const success = await mailchimpService.sendCampaign(type, doc);
 
