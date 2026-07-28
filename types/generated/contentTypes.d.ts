@@ -923,6 +923,7 @@ export interface ApiNewsSectionNewsSection extends Struct.CollectionTypeSchema {
           preset: 'defaultHtml';
         }
       >;
+    hideOnLauraStein: Schema.Attribute.Boolean;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

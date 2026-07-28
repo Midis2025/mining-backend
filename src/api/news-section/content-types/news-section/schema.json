@@ -72,6 +72,9 @@
     "sendToMailchimp": {
       "type": "boolean",
       "default": false
+    },
+    "hideOnLauraStein": {
+      "type": "boolean"
     }
   }
 }
