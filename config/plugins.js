@@ -80,4 +80,32 @@ module.exports = ({ env }) => ({
       },
     },
   },
+
+  // Media uploads go to S3 when AWS_BUCKET is set (production); local disk otherwise.
+  // No access keys: on EC2 the AWS SDK uses the instance's IAM role.
+  // ACL must be present but undefined: the bucket has ACLs disabled ("Bucket owner
+  // enforced") and public read comes from the bucket policy. Omitting the key makes
+  // the provider send ACL=public-read, which S3 rejects.
+  ...(env('AWS_BUCKET') && {
+    upload: {
+      config: {
+        provider: 'aws-s3',
+        providerOptions: {
+          baseUrl: env('CDN_URL'),
+          s3Options: {
+            region: env('AWS_REGION'),
+            params: {
+              Bucket: env('AWS_BUCKET'),
+              ACL: undefined,
+            },
+          },
+        },
+        // File names are content-hashed, so browsers and CDNs can cache them forever.
+        actionOptions: {
+          upload: { CacheControl: 'public, max-age=31536000, immutable' },
+          uploadStream: { CacheControl: 'public, max-age=31536000, immutable' },
+        },
+      },
+    },
+  }),
 });
